@@ -1,0 +1,78 @@
+// BaekJoon - Problem. 4008 : [모의 SW 역량테스트] 숫자 만들기
+// dfs 문제
+#include <iostream>
+#include <vector>
+#include <queue>
+
+using namespace std;
+
+int T, N;	
+int iT, iN;
+int result, minval, maxval;
+
+int Number[12];
+int Operator[4];
+
+void dfs(int idx, int temp_result){
+	if (Operator[0] == 0 && Operator[1] == 0 && Operator[2] == 0 && Operator[3] == 0){
+		if (temp_result > maxval){
+			maxval = temp_result;
+		}
+		if (temp_result < minval){
+			minval = temp_result;
+		}
+		return;
+	}
+
+	if (Operator[0] > 0){
+		Operator[0]--;
+		dfs(idx + 1,temp_result + Number[idx]);
+		Operator[0]++;
+	}
+
+	if (Operator[1] > 0){
+		Operator[1]--;
+		dfs(idx + 1, temp_result - Number[idx]);
+		Operator[1]++;
+	}
+
+	if (Operator[2] > 0){
+		Operator[2]--;
+		dfs(idx + 1, temp_result * Number[idx]);
+		Operator[2]++;
+	}
+
+	if (Operator[3] > 0){
+		Operator[3]--;
+		dfs(idx + 1, temp_result / Number[idx]);
+		Operator[3]++;
+	}
+}
+
+
+int main(void){
+	freopen("sample_input_4008.txt", "r", stdin);
+
+	scanf("%d", &T);
+
+	for (iT = 1; iT <= T; iT++){
+		scanf("%d", &N);
+		for (int i = 0; i < 4; i++){
+			scanf("%d", &Operator[i]);
+		}
+		for (iN = 0; iN < N; iN++){
+			scanf("%d", &Number[iN]);
+		}
+
+		minval = 100000001;
+		maxval = -100000001;
+
+		dfs(1, Number[0]);
+		
+		result = maxval - minval;
+
+		printf("#%d %d\n", iT, result);
+	}
+
+	return 0;
+}

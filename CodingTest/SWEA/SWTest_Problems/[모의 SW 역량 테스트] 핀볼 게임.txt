@@ -1,0 +1,194 @@
+// SW Expert Academy - Problem. 5650 : [모의 SW 역량테스트] 핀볼 게임
+// 시뮬레이션 문제
+#include <iostream>
+#include <string.h>
+#include <vector>
+
+using namespace std;
+
+
+int T, N;
+int iT, iN, jN, iD;
+int result;
+
+int PinballMap[100][100];
+int dir[4][2] = { { -1, 0 }, { 1, 0 }, { 0, -1 }, { 0, 1 } }; // 좌 우 상 하
+int pinball[3];		//핀볼 정보, x, y, 방향
+int startPos[2];	//시작 위치
+int current = 0;
+int nx, ny;
+
+vector<pair<pair<int, int>, int >> wormholeList;
+
+void simulate(){
+	
+	current = 0;
+	while (true){
+		//다음 좌표 저장
+		nx = pinball[0] + dir[pinball[2]][0];
+		ny = pinball[1] + dir[pinball[2]][1];
+
+		//pinball[0] = nx;
+		//pinball[1] = ny;
+
+		if (nx >= 0 && nx < 100 && ny >= 0 && ny < 100){
+			//블록을 만날 때 
+			if (PinballMap[ny][nx] > 0 && PinballMap[ny][nx] < 6){
+				if (PinballMap[ny][nx] == 1){
+					if (pinball[2] == 0){
+						pinball[2] = 2;
+					}
+					else if (pinball[2] == 1) {
+						pinball[2] = 0;
+					}
+					else if (pinball[2] == 2) {
+						pinball[2] = 3;
+					}
+					else if (pinball[2] == 3) {
+						pinball[2] = 1;
+					}
+				}
+				else if (PinballMap[ny][nx] == 2){
+					if (pinball[2] == 0){
+						pinball[2] = 3;
+					}
+					else if (pinball[2] == 1) {
+						pinball[2] = 0;
+					}
+					else if (pinball[2] == 2) {
+						pinball[2] = 1;
+					}
+					else if (pinball[2] == 3) {
+						pinball[2] = 2;
+					}
+				}
+				else if (PinballMap[ny][nx] == 3){
+					if (pinball[2] == 0){
+						pinball[2] = 1;
+					}
+					else if (pinball[2] == 1) {
+						pinball[2] = 3;
+					}
+					else if (pinball[2] == 2) {
+						pinball[2] = 0;
+					}
+					else if (pinball[2] == 3) {
+						pinball[2] = 2;
+					}
+				}
+				else if (PinballMap[ny][nx] == 4){
+					if (pinball[2] == 0){
+						pinball[2] = 1;
+					}
+					else if (pinball[2] == 1) {
+						pinball[2] = 2;
+					}
+					else if (pinball[2] == 2) {
+						pinball[2] = 3;
+					}
+					else if (pinball[2] == 3) {
+						pinball[2] = 0;
+					}
+				}
+				else if (PinballMap[ny][nx] == 5){
+					if (pinball[2] == 0){
+						pinball[2] = 1;
+					}
+					else if (pinball[2] == 1) {
+						pinball[2] = 0;
+					}
+					else if (pinball[2] == 2) {
+						pinball[2] = 3;
+					}
+					else if (pinball[2] == 3) {
+						pinball[2] = 2;
+					}
+				}
+				current++;
+			}
+
+			//웜홀을 만날 때
+			if (PinballMap[ny][nx] >= 6){
+				for (int iS = 0; iS < wormholeList.size(); iS++){
+					//값은 같고 좌표가 다른 웜홀을 찾음
+					if ((wormholeList[iS].first.first != nx || wormholeList[iS].first.second != ny) && wormholeList[iS].second == PinballMap[ny][nx]){
+						nx = wormholeList[iS].first.first;
+						ny = wormholeList[iS].first.second;
+						break;
+					}
+				}
+			}
+
+			if (PinballMap[ny][nx] == -1) {
+				return;
+			}
+		}
+		else {
+			//벽에 부딪힐 때, 제자리에서 방향만 바꿈
+			if (pinball[2] == 0){
+				pinball[2] = 1;
+			}
+			else if (pinball[2] == 1) {
+				pinball[2] = 0;
+			}
+			else if (pinball[2] == 2) {
+				pinball[2] = 3;
+			}
+			else if (pinball[2] == 3) {
+				pinball[2] = 2;
+			}
+			current++;
+		}
+
+		pinball[0] = nx;
+		pinball[1] = ny;
+
+		if ((nx == startPos[0]) && (ny == startPos[1])) { 
+			return; 
+		}
+	}
+
+}
+
+int main(void){
+	freopen("sample_input_5650.txt", "r", stdin);
+
+	scanf("%d", &T);
+
+	for (iT = 1; iT <= T; iT++){
+		scanf("%d", &N);
+
+		wormholeList.clear();
+
+		for (iN = 0; iN < N; iN++){
+			for (jN = 0; jN < N; jN++){
+				scanf("%d", &PinballMap[iN][jN]);
+				if (PinballMap[iN][jN] >= 6) {
+					wormholeList.push_back({ { jN, iN }, PinballMap[iN][jN] });
+				}
+			}
+		}
+
+		result = 0;
+		for (iN = 0; iN < N; iN++){
+			for (jN = 0; jN < N; jN++){
+				if (PinballMap[iN][jN] == 0){
+					for (iD = 0; iD < 4; iD++){
+						startPos[0] = pinball[0] = jN;
+						startPos[1] = pinball[1] = iN;
+						pinball[2] = iD;
+						simulate();
+						if (result < current) {
+							result = current;
+						}
+					}
+				}
+			}
+		}
+
+		printf("#%d %d\n", iT, result);
+	}
+
+
+	return 0;
+}

@@ -1,0 +1,59 @@
+// SW Expert Academy - Problem. 1952 : [모의 SW 역량테스트] 수영장
+// dfs, dp 문제
+#include <iostream>
+
+using namespace std;
+
+int T, N;
+int iT;
+int result;
+
+int prices[4];
+int plans[12];
+
+void dfs(int month, int sum){
+	if (month >= 12){
+		if (result > sum){
+			result = sum;
+		}
+		return;
+	}
+
+	if (sum >= prices[3]){
+		return;
+	}
+
+	//1일
+	dfs(month + 1, sum + plans[month] * prices[0]);
+
+	//1달
+	dfs(month + 1, sum + prices[1]);
+
+	//3달
+	dfs(month + 3, sum + prices[2]);
+
+	//1년
+	dfs(month + 12, sum + prices[3]);
+}
+
+int main(void){
+	freopen("sample_input_1952.txt", "r", stdin);
+
+	scanf("%d", &T);
+
+	for (iT = 1; iT <= T; iT++){
+		scanf("%d %d %d %d", &prices[0], &prices[1], &prices[2], &prices[3]);
+		for (int i = 0; i < 12; i++){
+			scanf("%d", &plans[i]);
+		}
+
+		result = prices[3];
+
+		dfs(0,0);
+
+		printf("#%d %d\n", iT, result);
+	}
+
+
+	return 0;
+}

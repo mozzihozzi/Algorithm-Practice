@@ -1,0 +1,66 @@
+//Baekjoon - 14888 : 연산자 끼워넣기
+//dfs 문제
+#include <iostream>
+
+using namespace std;
+
+int N;
+long long minval, maxval;
+
+long long Number[12];
+int Operator[4];
+
+void dfs(int idx, long long temp_result){
+	if (Operator[0] == 0 && Operator[1] == 0 && Operator[2] == 0 && Operator[3] == 0){
+		if (temp_result > maxval){
+			maxval = temp_result;
+		}
+		if (temp_result < minval){
+			minval = temp_result;
+		}
+		return;
+	}
+
+	if (Operator[0] > 0){
+		Operator[0]--;
+		dfs(idx + 1, temp_result + Number[idx]);
+		Operator[0]++;
+	}
+
+	if (Operator[1] > 0){
+		Operator[1]--;
+		dfs(idx + 1, temp_result - Number[idx]);
+		Operator[1]++;
+	}
+
+	if (Operator[2] > 0){
+		Operator[2]--;
+		dfs(idx + 1, temp_result * Number[idx]);
+		Operator[2]++;
+	}
+
+	if (Operator[3] > 0){
+		Operator[3]--;
+		dfs(idx + 1, temp_result / Number[idx]);
+		Operator[3]++;
+	}
+}
+
+
+int main(void) {
+	scanf("%d", &N);
+	for (int i = 0; i < N; i++){
+		scanf("%d",&Number[i]);
+	}
+	scanf("%d %d %d %d", &Operator[0], &Operator[1], &Operator[2], &Operator[3]);
+	
+	maxval = -1000000001;
+	minval = 1000000001;
+
+	dfs(1,Number[0]);
+
+	printf("%d\n%d", maxval,minval);
+	
+
+	return 0;
+}

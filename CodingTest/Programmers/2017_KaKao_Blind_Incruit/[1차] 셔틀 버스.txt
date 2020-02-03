@@ -1,0 +1,50 @@
+//(2017년)KAKAO BLIND RECRUITMENT : [1차] 셔틀 버스
+//시간을 처리하는 문제, 15점
+#include <string>
+#include <vector>
+#include <algorithm>
+
+using namespace std;
+
+string solution(int n, int t, int m, vector<string> timetable) {
+	string answer = "";
+	vector<int> times;
+	int hour, min, busTime, sum;
+	for (int i = 0; i < timetable.size(); i++){
+		hour = stoi(timetable[i].substr(0, 2));
+		min = stoi(timetable[i].substr(3, 4));
+		sum = hour * 60 + min;
+
+		if (sum <= 540 + t*(n - 1)){
+			times.push_back(sum);
+		}
+	}
+	sort(times.begin(), times.end());
+	
+	for (int it = 0; it < n; it++){
+		int cnt = 0, last_time;
+		busTime = 540 + t*it;
+		while ((cnt != m) && (!times.empty()) && times.front() <= busTime ){	//지우기
+			last_time = times.front();
+			times.erase(times.begin());
+			cnt++;
+		}
+
+		if (it == n - 1){
+			if (cnt == m){
+				hour = (last_time - 1) / 60;
+				min = (last_time - 1) % 60;
+				(hour < 10) ? answer += "0" + to_string(hour) + ":" : answer += to_string(hour) + ":";
+				(min < 10) ? answer += "0" + to_string(min) : answer += to_string(min);
+			}
+			else if (cnt < m) {
+				hour = busTime / 60;
+				min = busTime % 60;
+				(hour < 10) ? answer += "0" + to_string(hour) + ":" : answer += to_string(hour) + ":";
+				(min < 10) ? answer += "0" + to_string(min) : answer += to_string(min);
+			}
+		}
+	}
+
+	return answer;
+}

@@ -1,0 +1,108 @@
+// SW Expert Academy - Problem. 4103 : [모의 SW 역량 테스트] 특이한 자석
+// 시뮬레이션 문제
+#include <iostream>
+#include <cmath>
+#include <vector>
+#include <functional>
+#include <deque>
+using namespace std;
+
+int T, K, D;	//K 톱니바퀴 선택, D 돌릴 방향 1:시계 / -1:반시계 -1은 0으로 만들어서 넣어줌
+
+int iT, iN, jN, iK, iS;		
+
+int result;
+
+vector<bool> magInfo[4];				//N극이 0, S극이 1
+vector<pair<int, int>> magCommands;		//자석번호, 방향
+int checkMagRotate[4];					//자석을 어디로 돌릴지 결정 -1 : 반시계, 0 : 안돌림, 1 : 시계
+
+int checkMag(){
+	int sum = 0;
+	for (int i = 0; i < 4; i++){
+		if (magInfo[i][0] == 1){		//S극이면
+			sum += pow(2, i);		//2의 i제곱수를 더함
+		}
+	}
+	return sum;
+}
+
+void rotateMag(int magnet, int dir){			//
+	bool temp;
+	if (dir == 1){				//시계방향으로 회전, 마지막을 빼서 처음으로 넣어줌
+		temp = magInfo[magnet][7];
+		magInfo[magnet].pop_back();
+		magInfo[magnet].insert(magInfo[magnet].begin(),temp);
+	}
+	else if (dir == -1){				//반시계방향으로 회전, 처음을 빼서 마지막으로 넣어줌
+		temp = magInfo[magnet][0];
+		magInfo[magnet].erase(magInfo[magnet].begin());
+		magInfo[magnet].push_back(temp);
+	}
+}
+
+void doCommands(int magnet, int dir){
+	//memset(checkMagRotate, 0, sizeof(checkMagRotate));			//체크 배열 초기화
+	checkMagRotate[magnet] = dir;					//선택한 자석의 방향 넣어줌
+	//먼저 자기 양옆의 자석 상태를 확인해서 어떻게 돌릴 건지 결정함	
+	//시작은 현재 선택한 자석부터 오른쪽, 왼쪽 순으로 탐방함
+	for (int i = magnet; i <= 2; i++){
+		if ((magInfo[i][2] == magInfo[i + 1][6]) || (checkMagRotate[i] == 0)){
+			checkMagRotate[i + 1] = 0;
+		}
+		else {
+			checkMagRotate[i + 1] = checkMagRotate[i] * (-1);
+		}
+	}
+	for (int i = magnet; i >= 1; i--){
+		if ((magInfo[i][6] == magInfo[i - 1][2]) || (checkMagRotate[i] == 0)){
+			checkMagRotate[i - 1] = 0;
+		}
+		else {
+			checkMagRotate[i - 1] = checkMagRotate[i] * (-1);
+		}
+	}
+
+	//결정되었으면 자석을 돌려봄
+	for (int i = 0; i < 4; i++){
+		rotateMag(i, checkMagRotate[i]);
+	}
+}
+
+int main(void){
+	freopen("sample_input_4013.txt", "r", stdin);
+
+	scanf("%d", &T);
+	
+	for (iT = 1; iT <= T; iT++){
+		scanf("%d", &K);
+		//자석정보 입력
+		int temp1, temp2;
+		for (iN = 0; iN < 4; iN++){
+			magInfo[iN].clear();
+			for (jN = 0; jN < 8; jN++){
+				scanf("%d", &temp1);
+				magInfo[iN].push_back(temp1);
+			}
+		}
+		
+		//명령 입력
+		magCommands.clear();
+		for (iK = 0; iK < K; iK++){
+			scanf("%d %d", &temp1, &temp2);
+			magCommands.push_back({ temp1 - 1, temp2});
+		}
+
+		//회전 시켜봄
+		result = 0;
+		for (iS = 0; iS < K; iS++){
+			doCommands(magCommands[iS].first, magCommands[iS].second);
+		}
+		//회전이 모두 끝났으면 deque의 top을 체크 함
+		result += checkMag();
+
+
+		printf("#%d %d\n", iT, result);
+	}
+	return 0;
+}

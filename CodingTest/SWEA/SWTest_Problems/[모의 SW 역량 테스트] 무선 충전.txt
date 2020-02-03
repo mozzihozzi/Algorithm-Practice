@@ -1,0 +1,151 @@
+// SW Expert Academy - Problem. 5644 : [모의 SW 역량 테스트] 무선 충전
+// 탐욕 알고리즘 문제, 이동할 때마다 충전하는 양의 최대값을 계산해서 저장하면 됨
+#include <iostream>
+
+#define ABS(x)	( ((x) < 0) ? -(x) : (x))
+using namespace std;
+
+typedef struct bc{		//AP 정보 담을 구조체
+	int Location[2];	//X, Y
+	int C;
+	int P;
+}BC;
+
+BC BCInfo[8];			//BC 정보
+int Psum[2][101];		//충전 결과를 저장할 배열
+int route[2][101][2];	//A와 B의 이동 경로
+
+int dir[5][2] = { { 0, 0 }, { 0, -1 }, { 1, 0 }, { 0, 1 }, { -1, 0 } };	//정지, 상, 우, 하, 좌
+
+int T, M, A;			//M : 이동거리, A : AP의 개수
+
+int iT, iM, iA, iP;
+
+int result;
+
+bool checkInRage(int c){
+	int distance = ABS(BCInfo[iA].Location[0] - route[iP][iM][0]) + ABS(BCInfo[iA].Location[1] - route[iP][iM][1]);
+	if (distance <= BCInfo[iA].C){
+		return true;
+	}
+
+	return false;
+}
+
+void simulate(){	//iM 사용 x
+	//결국엔 충전할 BC 선택 -> 선택한 BC에서 충전 순서임
+
+	//충전할 BC 선택
+	//현재 범위에 있는지 확인, 없으면 넘어감
+	//A와 B가 충전할 BC정보(BC 정보 배열 index), index가 A면 선택하지 않음 충전 안함
+	int selectBC[2][2] = { { A, A }, { A, A } };
+	
+	//먼저 충전량이 최대로 되는 지점을 찾음
+	for (iA = 0; iA < A; iA++){		//BC의 개수만큼 돌아봄
+		for (iP = 0; iP < 2; iP++){	//A와 B에 대해서 확인
+			if ( checkInRage(iM) ){	//BC 범위 안에 있으면 
+				//일단 현재 선택되어있는 BC가 A면 들어가있는 AP로 선택함, 차선택 BC까지 저장 함
+				//최선택 BC 선택하기
+				if (selectBC[iP][0] == A){		//AP가 하나도 선택되지 않았을 때
+					selectBC[iP][0] = iA;
+					selectBC[iP][1] = iA;
+				}
+				else if (BCInfo[selectBC[iP][0]].P < BCInfo[iA].P) {	//최선책 BC를 찾기
+					selectBC[iP][1] = selectBC[iP][0];		//원래있던 최선책은 차선책으로 감
+					selectBC[iP][0] = iA;					//새로운 최선책 저장
+				}	
+				// 먼저 최선책 보다 작은 녀석
+				else if (BCInfo[selectBC[iP][0]].P >= BCInfo[iA].P){
+					if (BCInfo[selectBC[iP][0]].P == BCInfo[selectBC[iP][1]].P){
+						selectBC[iP][1] = iA;					//새로운 차선책 저장
+					}
+					else if (BCInfo[selectBC[iP][1]].P < BCInfo[iA].P){
+						selectBC[iP][1] = iA;					//새로운 차선책 저장
+					}
+				}
+			}
+		}
+	}
+
+	//만약 A, B가 1순위로 같은 BC를 쓰고 있다면 비교해 봐야 함
+	//나누어서 충전하는 값 < AP를 각각 따로 쓰는 경우
+	if (selectBC[0][0] == selectBC[1][0] && selectBC[0][0] != A){
+		//만약 따로 쓰는게 더 이득이면 따로 쓸 AP 정보를 넣어줌
+
+		if (selectBC[0][0] == selectBC[0][1]){
+			selectBC[1][0] = selectBC[1][1];
+		}
+		else if (selectBC[1][0] == selectBC[1][1]){
+			selectBC[0][0] = selectBC[0][1];
+		}
+		else {
+			if (BCInfo[selectBC[0][1]].P < BCInfo[selectBC[1][1]].P){
+				selectBC[1][0] = selectBC[1][1];
+			}
+			else {
+				selectBC[0][0] = selectBC[0][1];
+			}
+		}
+		
+	}
+
+	//충전량 기록
+	for (iP = 0; iP < 2; iP++){
+		if (selectBC[iP][0] == A){
+			Psum[iP][iM] = 0;
+		}
+		else{
+			if (selectBC[0][0] != selectBC[1][0]){
+				Psum[iP][iM] = BCInfo[selectBC[iP][0]].P;
+			}
+			else {
+				Psum[iP][iM] = BCInfo[selectBC[iP][0]].P / 2;
+			}
+		}
+	}
+}
+
+int main(void){
+	freopen("sample_input_5644.txt","r",stdin);
+
+	scanf("%d", &T);
+
+	for (iT = 1; iT <= T; iT++){
+		scanf("%d %d", &M, &A);
+
+		route[0][0][0] = route[0][0][1] = 1;
+		route[1][0][0] = route[1][0][1] = 10;
+
+		//이동 명령 입력, 이동 명령받으면서 동시에 이동 좌표 생성 해서 넣음
+		int temp;
+		for (iP = 0; iP < 2; iP++){
+			for (iM = 1; iM <= M; iM++){
+				scanf("%d", &temp);
+				route[iP][iM][0] = route[iP][iM - 1][0] + dir[temp][0];
+				route[iP][iM][1] = route[iP][iM - 1][1] + dir[temp][1];
+			}
+		}
+
+		//BC 정보 입력
+		for (iA = 0; iA < A; iA++){
+			scanf("%d %d %d %d", &(BCInfo[iA].Location[0]), &(BCInfo[iA].Location[1]), &(BCInfo[iA].C), &(BCInfo[iA].P));
+		}
+
+		//이동하면서 결과 저장
+		for (iM = 0; iM <= M; iM++){
+			simulate();
+		}
+
+		result = 0;
+		for (iP = 0; iP < 2; iP++){
+			for (iM = 0; iM <= M; iM++){
+				result += Psum[iP][iM];
+			}
+		}
+
+
+		printf("#%d %d\n", iT, result);
+
+	}
+	return 0;
+}

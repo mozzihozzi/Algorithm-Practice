@@ -1,0 +1,98 @@
+// BaekJoon - Problem. 2115 : [모의 SW 역량테스트] 벌꿀 채취
+// 탐색, 조합 문제
+#include <iostream>
+#include <vector>
+#include <queue>
+
+using namespace std;
+
+int T, N, M, C;	// N : 접수, M : 정비, K : 사람 수 , A,B : 접수/정비 창구 정보
+int iT, iN, jN, iM;
+int result, first, second;				//고객 번호의 합
+int temp, tempX,tempY;
+
+int honeyInfo[10][10];
+bool honeyCheck[10][10];
+
+void permutation(int y, int x, int m, int sum, int price){
+	if (sum + honeyInfo[y][x] > C || m == M) {
+		if (temp < price){
+			temp = price;
+		}
+		return;
+	}
+/*
+	if (m == M) { 
+		if (temp < price){
+			temp = price;
+		}
+		return;
+	}*/
+
+	permutation(y, x + 1, m + 1, sum + honeyInfo[y][x], price + honeyInfo[y][x] * honeyInfo[y][x]);
+	permutation(y, x + 1, m + 1, sum, price);
+}
+
+void calculate(int y, int x, int num){
+	temp = 0;
+	permutation(y, x, 0, 0, 0);
+
+	if (num == 0){
+		if (first < temp){
+			first = temp;
+			tempX = x;
+			tempY = y;
+		}
+	}
+	else if (num == 1){
+		if (second < temp){
+			second = temp;
+		}
+	}
+}
+
+//첫번째, 두번째가 선택하는게 각각 독립적임, 모든 경우의 수에 대해서 해보고 최대값 기록하기.
+void simulate(){	//첫번째 먼저 선택하고 두번째 선택
+	first = 0, second = 0;
+	tempX = 0, tempY = 0;
+	for (iN = 0; iN < N; iN++){
+		for (jN = 0; jN < N; jN++){
+			if (jN + M > N) { continue; } 
+			calculate(iN, jN, 0);
+		}
+	}
+	//겹치는 것을 피하기 위해서 색칠함, 이부분 이해가 안됨
+	//for (iM = 0; iM < M; iM++){ honeyCheck[tempY][tempX + iM] = true; }
+	for (iN = 0; iN < N; iN++){ honeyCheck[tempY][iN] = true; }
+
+	for (iN = 0; iN < N; iN++){
+		for (jN = 0; jN < N; jN++){
+			if ((jN + M > N) || honeyCheck[iN][jN]) { continue; }
+			calculate(iN, jN, 1);
+		}
+	}
+
+	result = first + second;
+}
+
+int main(void){
+	freopen("sample_input_2115.txt", "r", stdin);
+
+	scanf("%d", &T);
+
+	for (iT = 1; iT <= T; iT++){
+		scanf("%d %d %d", &N, &M, &C);
+		for (iN = 0; iN < N; iN++){
+			for (jN = 0; jN < N; jN++){
+				scanf("%d",&honeyInfo[iN][jN]);
+				honeyCheck[iN][jN] = false;
+			}
+		}
+
+		simulate();
+
+		printf("#%d %d\n", iT, result);
+	}
+
+	return 0;
+}

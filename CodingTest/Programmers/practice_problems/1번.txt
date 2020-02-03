@@ -1,0 +1,62 @@
+#include <iostream>
+#include <string>
+#include <sstream>
+#include <algorithm>
+#include <vector>
+
+using namespace std;
+
+bool compare(string a, string b){
+	return a.size() < b.size();
+}
+
+int solution(string s) {
+	int answer = 0;
+	vector<string> results;
+	for (int i = 1; i <= s.size()/2; i++){
+		int idx;
+		vector<string> temp, input;
+		//문자열 자르기
+		for (idx = 0; idx < s.size(); idx += i){
+			if (idx + i > s.size()){
+				temp.push_back(s.substr(idx, s.size() - idx));
+			}
+			else{
+				temp.push_back(s.substr(idx, i));
+			}
+		}
+		temp.push_back(" ");
+		int tempIdx = 0, cnt = 0;
+		string tempstr = temp[0];
+		for (int j = 0; j < temp.size() - 1; j++){
+			if (tempstr == temp[j + 1]){
+				cnt++;
+				continue;
+			}
+			else{
+				if ((cnt != 0) && (tempstr.size() == i)){
+					string a = to_string(cnt + 1);
+					input.push_back(to_string(cnt + 1) + tempstr);
+				}
+				else {
+					input.push_back(tempstr);
+				}
+
+				cnt = 0;
+				tempstr = temp[j + 1];
+			}
+		}
+		
+		tempstr = "";
+		for (int j = 0; j < input.size(); j++){
+			tempstr += input[j];
+		}
+
+		results.push_back(tempstr);
+	}
+
+	sort(results.begin(), results.end(), compare);
+	answer = results[0].size();
+
+	return answer;
+}

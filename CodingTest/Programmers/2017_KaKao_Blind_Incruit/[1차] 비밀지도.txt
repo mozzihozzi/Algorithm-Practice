@@ -1,0 +1,42 @@
+//(2017년)KAKAO BLIND RECRUITMENT : 비밀지도
+#include <iostream>
+#include <string>
+#include <vector>
+
+using namespace std;
+
+vector<string> solution(int n, vector<int> arr1, vector<int> arr2) {
+	vector<string> answer(n,"");
+	for (int i = 0; i < n; i++){
+		for (int j = 0; j < n; j++){
+			answer[i] += " ";
+		}
+
+		vector<char> temp;
+		int idx = 0;
+		while ( arr1[i] || arr2[i] ){
+			bool check = false;
+			if (arr1[i] != 0){
+				check += arr1[i] % 2;
+			}
+
+			if (arr2[i] != 0 && check == false){
+				check = arr2[i] % 2;
+			}
+			if (check){
+				temp.push_back('#');
+			}
+			else{
+				temp.push_back(' ');
+			}
+			arr1[i] = arr1[i] / 2;
+			arr2[i] = arr2[i] / 2;
+			idx++;
+		}
+
+		for (int j = 0; j < temp.size(); j++){
+			answer[i][n - 1 - j] = temp[j];
+		}
+	}
+	return answer;
+}

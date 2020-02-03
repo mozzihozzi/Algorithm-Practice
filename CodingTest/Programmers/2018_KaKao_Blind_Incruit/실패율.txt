@@ -1,0 +1,61 @@
+//(2017년)KAKAO BLIND RECRUITMENT : [1차] 뉴스 클러스터링
+//교집합 합집합 문제
+#include <iostream>
+#include <string>
+#include <algorithm>
+#include <vector>
+
+using namespace std;
+
+vector<int> solution(int N, vector<int> stages) {
+	vector<int> answer;
+	vector<pair<double,int>> err(N);
+	sort(stages.begin(), stages.end());
+	
+	for (int i = 0, idx = 0; i < N; i++){
+		int cnt = 0;
+		while (idx < stages.size()){
+			if (stages[idx] > i + 1){
+				break;
+			}
+			else if (stages[idx] == i + 1){
+				cnt++;
+			}
+			idx++;
+		}
+		
+		err[i].first = (double)cnt / (double)(stages.size() - (idx - cnt));
+		err[i].second = -1 * (i + 1);
+	}
+
+	sort(err.begin(), err.end());
+	
+	for (int i = 0; i < N; i++) {
+		if (answer.empty()){
+			answer.push_back(-1*err[i].second);
+		}
+		else {
+			answer.insert(answer.begin(), -1 * err[i].second);
+		}
+	}
+
+	return answer;
+}
+
+
+int main(void){
+	vector<int> samples;
+	/*int a[] = {
+		2, 1, 2, 6, 2, 4, 3, 3
+	};*/
+	int a[] = {
+		4,4,4,4,4
+	};
+	for (int i = 0; i < 4; i++){
+		samples.push_back(a[i]);
+	}
+	for (int i = 0; i < samples.size(); i++){
+		cout << solution(4,samples)[i] << endl;
+	}
+	return 0;
+}

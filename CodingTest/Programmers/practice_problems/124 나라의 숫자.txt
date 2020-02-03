@@ -1,0 +1,57 @@
+//124 나라의 숫자
+#include <iostream>
+#include <string>
+#include <vector>
+
+using namespace std;
+
+string solution(int n) {
+	string answer = "";
+
+	int digit = 1, cnt = 3;
+	int r, q, temp;
+	while (true){
+		if (n <= cnt){
+			temp = cnt / 3;
+			for (int i = digit; i > 0; i--){
+				
+				r = n / temp;
+				q = n % temp;
+
+				if (r == 0 || (r == 1 && q == 0 )){
+					answer.push_back('1');
+				}
+				if ((r == 1 && q != 0) || (r == 2 && q == 0)){
+					answer.push_back('2');
+				}
+				if ((r == 2 && q != 0) || (r == 3)){
+					answer.push_back('4');
+				}
+
+				if (q == 0){
+					n = temp;
+				}
+				else {
+					n = q;
+				}
+				temp /= 3;
+			}
+
+			break;
+		}
+		n -= cnt;
+		cnt *= 3;
+		digit++;
+	}
+
+	return answer;
+}
+
+int main(void){
+	vector<vector<int>> data;
+	int n = 12; 
+
+	solution(n);
+
+	return 0;
+}

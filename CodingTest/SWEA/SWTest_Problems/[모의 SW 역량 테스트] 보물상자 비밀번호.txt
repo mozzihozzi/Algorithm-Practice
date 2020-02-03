@@ -1,0 +1,84 @@
+// SW Expert Academy - Problem. 5658 : [모의 SW 역량테스트] 보물상자 비밀번호
+// simulation 문제
+#include <iostream>
+#include <string.h>
+#include <cmath>
+#include <vector>
+#include <set>
+
+using namespace std;
+
+int T, N, K;
+
+int iT, iN;
+
+unsigned int result;
+
+set<unsigned int> passwdSet;			//비밀번호 결과들
+vector<unsigned int> tresureboxNum;		//보물상자 번호들
+
+void insertSet(){
+	for (int i = 0; i < 4; i++){	//4면에 대해서 반복
+		unsigned int temp = 0;		//password 값 임시 저장
+		int cnt = 0;
+		for (int j = (i + 1)*(N / 4) - 1; j >= i*(N / 4); j--, cnt++){		//vector에서 오른쪽에 있는게 자리수가 낮음
+			temp += tresureboxNum[j] * pow(16, cnt);						//제곱한 값을 추가함
+		}
+		passwdSet.insert(passwdSet.begin(),temp);	//다 더하면 password를 set에 넣음
+	}
+}
+
+void rotate(){		//시계방향으로 회전
+	int temp = tresureboxNum[N-1];
+	tresureboxNum.pop_back();
+	tresureboxNum.insert(tresureboxNum.begin(),temp);
+}
+
+void findPasswd(){
+	int cnt = 1;
+	for (auto i = passwdSet.rbegin(); i != passwdSet.rend(); i++, cnt++){	//끝에서 부터 찾음
+		if (cnt == K){
+			result = (*i);
+			return;
+		}
+	}
+}
+
+void simulate(){
+	//돌려봄 N / 4까지만 돌려봐도 된다. 한쪽변길이만큼 다돌면 어차피 변이 통째로 회전한 것과 같음
+	//현재 비밀번호 조합을 넣고 돌림
+	//다돌리면 비밀번호 찾음
+
+	for (int i = 0; i < N / 4; i++){
+		insertSet();
+		rotate();
+	}
+
+	findPasswd();
+}
+
+int main(void){
+	freopen("sample_input_5658.txt","r",stdin);
+
+	scanf("%d", &T);
+
+
+	for (iT = 1; iT <= T; iT++){
+		scanf("%d %d", &N, &K);
+
+		passwdSet.clear();
+		tresureboxNum.clear();
+
+		unsigned int temp;
+		for (int i = 0; i < N; i++){
+			scanf("%1X", &temp);
+			tresureboxNum.push_back(temp);
+		}
+		
+		simulate();
+
+		printf("#%d %d\n", iT, result);
+
+	}
+	return 0;
+}

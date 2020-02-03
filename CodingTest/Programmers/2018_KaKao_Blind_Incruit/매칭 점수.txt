@@ -1,0 +1,144 @@
+#include <string>
+#include <vector>
+
+using namespace std;
+
+typedef struct information{
+	int base = 0;
+	int linkNum = 0;
+	double link = 0.0;
+	double match = 0.0;
+	string name = "";
+	vector<string> links;
+}info;
+
+int solution(string word, vector<string> pages) {
+	int answer = 0;
+	
+	vector<info> pageScores(pages.size());
+	//문자열 잘라서 정보 넣기 -> 단어들과 링크 뽑아내기
+	for (int i = 0; i < pages.size(); i++){
+		int idx = 0;
+		//내부 url 추출
+		while (pages[i].find("<meta",idx) != -1){
+			idx = pages[i].find("<meta", idx);
+			int temp = pages[i].find(">", idx);
+
+			if (temp < pages[i].find("https://", idx)){
+				idx = temp;
+				continue;
+			}
+			idx = pages[i].find("https://", idx);
+			while (pages[i][idx] != '\"'){
+				pageScores[i].name += pages[i][idx++];
+			}
+		}
+		//<body> 부분 words 추출해서 기본 점수 계산하기
+		
+		idx = pages[i].find("<body>") + 7;
+		while (pages[i].find("</body>", idx) != -1){		//body의 끝까지 검사
+			//링크 추출
+			if (pages[i].find("<a href=", idx) != -1){
+				pageScores[i].linkNum++;
+				string temp = "";
+				for (idx = pages[i].find("<a href", idx) + 9; pages[i][idx] != '\"'; idx++){
+					temp += pages[i][idx];
+				}
+				pageScores[i].links.push_back(temp);
+			}
+
+			if (pages[i].find("</a>", idx) != -1){
+				idx = pages[i].find("</a>", idx) + 4;
+			}
+			else {
+				idx = pages[i].find('\n', idx) + 2;
+			}
+		}
+	}
+
+	for (int i = 0; i < word.size(); i++){
+		if (word[i] >= 'A' && word[i] <= 'Z'){
+			word[i] += 32;
+		}
+	}
+	for (int i = 0; i < pages.size(); i++){
+		for (int j = 0; j < pages[i].size(); j++){
+			if (pages[i][j] >= 'A' && pages[i][j] <= 'Z'){
+				pages[i][j] += 32;
+			}
+		}
+	}
+	for (int i = 0; i < pages.size(); i++){
+		//기본점수 계산
+		for (int idx = pages[i].find("<body>") + 5; idx < pages[i].find("</body>"); idx++){
+			if (pages[i].find(word, idx) != -1){
+				idx = pages[i].find(word, idx);
+				int temp = idx;
+				//구분해주기 위해서 idx 이동
+				while (pages[i][idx] >= 'a' && pages[i][idx] <= 'z'){
+					idx++;
+				}
+				if (idx - temp <= word.size()){
+					pageScores[i].base++;
+				}
+			}
+		}
+
+		pageScores[i].linkNum = pageScores[i].links.size();	//링크 수 계산
+
+		//링크 점수 넣어주기
+		for (int j = 0; j < pageScores[i].links.size(); j++){
+			for (int k = 0; k < pages.size(); k++){
+				if (pageScores[k].name == pageScores[i].links[j]){
+					pageScores[k].link += (double)pageScores[i].base / (double)pageScores[i].linkNum;
+				}
+			}
+		}
+	}
+	
+	//매칭 점수 계산하기
+	for (int i = 0; i < pages.size(); i++){
+		pageScores[i].match = pageScores[i].base + pageScores[i].link;
+		if (pageScores[answer].match < pageScores[i].match){
+			answer = i;
+		}
+	}
+
+	return answer;
+}
+
+
+
+int main(void){
+	string word = "blind";
+	vector<string> samples;
+	/*string a[] = {
+		"<html lang=\"ko\" xml:lang=\"ko\" xmlns=\"http://www.w3.org/1999/xhtml\">\n<head>\n  <meta charset=\"utf-8\">\n  <meta property=\"og:url\" content=\"https://a.com\"/>\n</head>  \n<body>\nBlind Lorem Blind ipsum dolor Blind test sit amet, consectetur adipiscing elit. \n<a href=\"https://b.com\"> Link to b </a>\n</body>\n</html>",
+		"<html lang=\"ko\" xml:lang=\"ko\" xmlns=\"http://www.w3.org/1999/xhtml\">\n<head>\n  <meta charset=\"utf-8\">\n  <meta property=\"og:url\" content=\"https://b.com\"/>\n</head>  \n<body>\nSuspendisse potenti. Vivamus venenatis tellus non turpis bibendum, \n<a href=\"https://a.com\"> Link to a </a>\nblind sed congue urna varius. Suspendisse feugiat nisl ligula, quis malesuada felis hendrerit ut.\n<a href=\"https://c.com\"> Link to c </a>\n</body>\n</html>",
+		"<html lang=\"ko\" xml:lang=\"ko\" xmlns=\"http://www.w3.org/1999/xhtml\">\n<head>\n  <meta charset=\"utf-8\">\n  <meta property=\"og:url\" content=\"https://c.com\"/>\n</head>  \n<body>\nUt condimentum urna at felis sodales rutrum. Sed dapibus cursus diam, non interdum nulla tempor nec. Phasellus rutrum enim at orci consectetu blind\n<a href=\"https://a.com\"> Link to a </a>\n</body>\n</html>"
+	};*/
+	string a[] = {
+		"<html lang=\"ko\" xml:lang=\"ko\" xmlns=\"http://www.w3.org/1999/xhtml\">\n<head>\n  <meta charset=\"utf-8\">\n  <meta property=\"og:url\" content=\"https://careers.kakao.com/interview/list\"/>\n</head>  \n<body>\n<a href=\"https://programmers.co.kr/learn/courses/4673\"></a>#!MuziMuzi!)jayg07con&&\n\n</body>\n</html>",
+		"<html lang=\"ko\" xml:lang=\"ko\" xmlns=\"http://www.w3.org/1999/xhtml\">\n<head>\n  <meta charset=\"utf-8\">\n  <meta property=\"og:url\" content=\"https://www.kakaocorp.com\"/>\n</head>  \n<body>\ncon%\tmuzI92apeach&2<a href=\"https://hashcode.co.kr/tos\"></a>\n\n\t^\n</body>\n</html>"
+	};
+		for (int i = 0; i < 2; i++){
+		samples.push_back(a[i]);
+	}
+
+	cout << solution(word,samples) << endl;
+
+	return 0;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+

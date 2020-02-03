@@ -1,0 +1,126 @@
+// SW Expert Academy - Problem. 5648 : [모의 SW 역량 테스트] 원자 소멸 시뮬레이션
+// 시뮬레이션 문제
+#include <iostream>
+#include <string.h>
+#include <vector>
+
+using namespace std;
+
+typedef struct atom
+{
+	int x, y;
+	int dir;		// 상(0), 하(1), 좌(2), 우(3)
+	int value;		
+}ATOM;
+
+//ATOM atomList[1000];
+vector<ATOM> atomVec;
+
+int T, N;
+int iT, iN, jN, iP;
+int result;
+int atomMap[4001][4001];
+
+float dir[4][2] = { { 0, 1 }, { 0, -1 }, { -1, 0 }, { 1, 0 } };
+
+int main(void){
+	freopen("sample_input_5648.txt", "r", stdin);
+
+	scanf("%d", &T);
+
+	for (iT = 1; iT <= T; iT++){
+		
+		scanf("%d", &N);
+
+		atomVec.clear();
+
+		ATOM tempAtom;
+		for (iN = 0; iN < N; iN++){
+			/*scanf("%d %d %d %d", &(atomList[iN].x), &(atomList[iN].y), &(atomList[iN].dir), &(atomList[iN].value));
+			atomList[iN].x = (1000 + atomList[iN].x) * 2;
+			atomList[iN].y = (1000 + atomList[iN].y) * 2;*/
+			scanf("%d %d %d %d", &(tempAtom.x), &(tempAtom.y), &(tempAtom.dir), &(tempAtom.value));
+			tempAtom.x = (1000 + tempAtom.x) * 2;
+			tempAtom.y = (1000 + tempAtom.y) * 2;
+			atomVec.push_back(tempAtom);
+		}
+
+		//처음 시작이 1000이니까 중간까지 가서 없으면 없는 것
+		result = 0;
+		for (iP = 0; iP < 4002; iP++){
+			//이동 
+			int cnt = 0;
+			/*for (iN = 0; iN < N; iN++){
+				if (atomList[iN].value != 0 && ABS(atomList[iN].x) <= 4000 && ABS(atomList[iN].y) <= 4000){
+					atomList[iN].x += dir[atomList[iN].dir][0];
+					atomList[iN].y += dir[atomList[iN].dir][1];
+					cnt++;
+				}
+				else {
+					atomList[iN].value = 0;
+				}
+			}*/
+
+			//이동 벡터사용, 수정
+			auto it = atomVec.begin();
+			while (it != atomVec.end()){
+				atomMap[it->x][it->y] = 0;
+				int nx = it->x + dir[it->dir][0];
+				int ny = it->y + dir[it->dir][1];
+
+				if (nx > 4000 || ny > 4000 || nx < 0 || ny < 0){
+					it = atomVec.erase(it);
+					continue;
+				}
+
+				it->x = nx;
+				it->y = ny;
+				atomMap[nx][ny] += it->value;
+				it++;
+			}
+
+
+			//if (cnt == 0) break;
+			if (atomVec.size() == 0) break;		//벡터 사용
+			
+			//체크
+			//for (iN = 0; iN < N; iN++){
+			//	cnt = 0;
+			//	if (atomList[iN].value != 0 && ABS(atomList[iN].x) <= 4000 && ABS(atomList[iN].y) <= 4000){
+			//		for (jN = 0; jN < N; jN++){
+			//			if (iN != jN && atomList[jN].value != 0 && atomList[iN].x == atomList[jN].x && atomList[iN].y == atomList[jN].y){		//길어서 나눔
+			//				result += atomList[jN].value;
+			//				atomList[jN].value = 0;
+			//				cnt++;
+			//			}
+			//		}
+			//		if (cnt > 0){
+			//			result += atomList[iN].value;
+			//			atomList[iN].value = 0;
+			//		}
+			//	}
+			//}
+
+			//체크 벡터사용
+			
+			for (it = atomVec.begin(); it != atomVec.end();){
+				if (it->value == 0){
+					it++;
+					continue;
+				}
+
+				if (atomMap[it->x][it->y] != it->value){
+					result += atomMap[it->x][it->y];
+					atomMap[it->x][it->y] = 0;
+					it = atomVec.erase(it);
+				}
+				else (it++);
+			}
+		}
+
+		printf("#%d %d\n", iT, result);
+	}
+
+
+	return 0;
+}

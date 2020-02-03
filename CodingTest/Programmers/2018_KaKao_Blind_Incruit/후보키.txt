@@ -1,0 +1,126 @@
+//(2018년)KAKAO BLIND RECRUITMENT : 후보키
+#include <iostream>
+#include <string>
+#include <vector>
+#include <set>
+#include <algorithm>
+
+using namespace std;
+
+bool checkAtt(vector<string> &sliced){		//true면 후보키 x, false면 후보키 o
+	int tupleLen = sliced.size();
+
+	for (int i = 0; i < tupleLen; i++){
+		if (count(sliced.begin(), sliced.end(), sliced[i]) >= 2){
+			return true;
+		}
+	}
+
+	return false;
+}
+
+void dfs(vector<vector<int>> &attQueue, vector<vector<string>> &relation, vector<int> parts, int idx){
+	if ((idx == relation[0].size())){
+		if ((parts.size() != 0)){
+			attQueue.push_back(parts);
+		}
+		return;
+	}
+
+	dfs(attQueue, relation, parts, idx + 1);
+	
+	parts.push_back(idx);
+	dfs(attQueue, relation, parts, idx + 1);
+}
+
+bool compare(vector<int> a, vector<int> b){
+	return a.size() < b.size();	
+}
+
+int solution(vector<vector<string>> relation) {
+	int answer = 0;
+	int attLen = relation[0].size();		// 가로길이
+	int tupleLen = relation.size();			// 세로길이
+
+	//리스트 만들기
+	vector<int> attList;
+	for (int i = 0; i < attLen; i++){
+		attList.push_back(i);
+	}
+	
+
+	//번호 선택해서 queue에 넣기 전체 선택
+	vector<vector<int>> attSelect;
+	vector<int> tempIdx;
+	dfs(attSelect, relation, tempIdx, 0);
+	sort(attSelect.begin(), attSelect.end(), compare);
+	
+	//pop하면서 해당 idx 검사하기
+	vector<bool> delList(attLen, false);	//true면 이미 후보 키임, false면 후보키 아직 안된 것
+	vector<bool> tempdelList(attLen, false);
+	int prevSize = 1;
+	for (int i = 0; i < attSelect.size(); i++){
+		//몰아서 넣기
+		if (prevSize != attSelect[i].size()){
+			for (int j = 0; j < tempdelList.size(); j++){
+				if (tempdelList[j]){
+					delList[j] = true;
+				}
+				tempdelList[j] = false;
+			}
+			prevSize = attSelect[i].size();
+		}
+		bool check = false;
+		//이미 선택되었는것인지 검사하기
+		for (int j = 0; j < attSelect[i].size(); j++){
+			int idx = attSelect[i][j];
+			if (delList[idx] == true){
+				check = true;
+				break;
+			}
+		}
+
+		//문자열 slice 해서 넣기
+		vector<string> slicedString(tupleLen,"");
+		for (int j = 0; j < tupleLen; j++){
+			for (int k = 0; k < attSelect[i].size(); k++){
+				slicedString[j] += relation[j][attSelect[i][k]] + ' ';
+			}
+		}
+
+		if ((check == true) | checkAtt(slicedString)){
+			continue;
+		}
+
+		//해당 속성들이 후보 키라면 answer++ 그리고 delete리스트에 추가
+		for (int j = 0; j < attSelect[i].size(); j++){
+			tempdelList[attSelect[i][j]] = true;
+		}
+		answer++;
+	}
+
+	return answer;
+}
+
+
+int main(void){
+	vector<vector<string>> samples;
+	string a[][4] = {
+		{ "100", "ryan", "music", "2" },
+		{ "200", "apeach", "math", "2" },
+		{ "300", "tube", "computer", "3" },
+		{ "400", "con", "computer", "4" },
+		{ "500", "muzi", "music", "3" },
+		{ "600", "apeach", "music", "2" }
+	};
+	for (int i = 0; i < 6; i++){
+		vector<string> temp;
+		for (int j = 0; j < 4; j++){
+			temp.push_back(a[i][j]);
+		}
+		samples.push_back(temp);
+	}
+
+	cout << solution(samples) << endl;
+	return 0;
+}

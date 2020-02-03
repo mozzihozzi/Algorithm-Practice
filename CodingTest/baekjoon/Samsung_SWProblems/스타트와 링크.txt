@@ -1,0 +1,69 @@
+//Baekjoon - 14889 : 스타트와 링크
+//dfs 문제
+#include <iostream>
+
+#define ABS(a) ( ((a) > 0) ? (a) : -(a) )
+using namespace std;
+
+int N;
+
+int result;
+int map[20][20];
+bool state[20];
+
+int calculate(){
+	int start = 0, link = 0;
+	for (int i = 0; i < N; i++){
+		for (int j = 0; j < N; j++){
+			if (i == j){
+				continue;
+			}
+			else{
+				if (state[i] == state[j]){
+					if (state[i] == false){
+						start += map[i][j];
+					}
+					else{
+						link += map[i][j];
+					}
+				}
+			}
+		}
+	}
+
+	return ABS(start - link);
+}
+
+void dfs(int idx,int cntA, int cntB){
+	if ((cntB == N/2) || (idx > N)){
+		int temp = calculate();
+
+		if (result > temp){
+			result = temp;
+		}
+		return;
+	}
+
+	state[idx] = false;
+	dfs(idx + 1, cntA + 1, cntB);
+	state[idx] = false;
+
+	state[idx] = true;
+	dfs(idx + 1, cntA + 1, cntB);
+	state[idx] = false;
+}
+
+
+int main(void) {
+	scanf("%d", &N);
+	for (int i = 0; i < N; i++){
+		for (int j = 0; j < N; j++){
+			scanf("%d", &map[i][j]);
+		}
+	}
+	result = 2001;
+	dfs(0,0,0);
+
+	printf("%d", result);
+	return 0;
+}

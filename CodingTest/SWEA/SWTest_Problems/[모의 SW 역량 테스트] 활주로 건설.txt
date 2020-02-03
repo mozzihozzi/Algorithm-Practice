@@ -1,0 +1,110 @@
+// SW Expert Academy - Problem. 4104 : [모의 SW 역량 테스트] 활주로 건설
+// 완전 탐색 문제, 중간에 멈춰도 됨.
+#include <iostream>
+//#include <algorithm>
+#include <string.h>
+//#include <vector>
+//#include <stack>
+
+using namespace std;
+
+int heightInfo[20][20];
+bool isRunway[20];
+int T, N, X;
+
+int iT, iN, jN;
+
+int result;
+bool checkRunway(int pos, bool dir){		// dir : 0이면 가로 방향 검사, dir : 1이면 세로 방향 검사
+	memset(isRunway, 0, sizeof(isRunway));
+	if (dir == 0){
+		for (int i = 0; i < N - 1; i++){
+			if (heightInfo[pos][i] > heightInfo[pos][i + 1]){	//다음 높이가 낮을 때
+				//활주로를 놓을곳에 다른 크기면 안됨, 이미 있으면 활주로 못놓음. 활주로의 길이가 넘어가면 
+				if ((i + X) < N && isRunway[i + 1] == 0 && (heightInfo[pos][i] == heightInfo[pos][i + 1] + 1) ){
+					//모든 경사로에 대해서 높이가 같아야함
+					for (int j = i + 2; j <= i + X; j++){
+						if (heightInfo[pos][i + 1] == heightInfo[pos][j]){
+							if (j == i + X)
+								memset(isRunway + i + 1, 1, sizeof(bool)*X);
+						}
+						else { return 0; }
+					}
+				}
+				else { return 0; }
+			}
+			else if (heightInfo[pos][i] < heightInfo[pos][i + 1]){	//다음 높이가 높을 때
+				//활주로를 놓을곳에 다른 크기면 안됨, 이미 있으면 활주로 못놓음. 활주로의 길이가 넘어가면 
+				if ((i + 1 - X) >= 0 && isRunway[i + 1 - X] == 0 && (heightInfo[pos][i] == heightInfo[pos][i + 1] - 1)){
+					//모든 경사로에 대해서 높이가 같아야함
+					for (int j = i - 1; j >= i + 1 - X; j--){
+						if (heightInfo[pos][i] == heightInfo[pos][j]){
+							if (j == i + 1 - X)
+								memset(isRunway + i + 1 - X, 1, sizeof(bool)*X);
+						}
+						else { return 0; }
+					}
+				}
+				else { return 0; }
+			}
+		}
+	}
+	else if (dir == 1){
+		for (int i = 0; i < N - 1; i++){
+			if (heightInfo[i][pos] > heightInfo[i + 1][pos] ){	//다음 높이가 낮을 때
+				//활주로를 놓을곳에 다른 크기면 안됨, 이미 있으면 활주로 못놓음. 활주로의 길이가 넘어가면 
+				if ((i + X) < N && isRunway[i + 1] == 0 && (heightInfo[i][pos] == heightInfo[i + 1][pos] + 1) ){
+					for (int j = i + 2; j <= i + X; j++){
+						if (heightInfo[i + 1][pos] == heightInfo[j][pos]){
+							if (j == i + X)
+								memset(isRunway + i + 1, 1, sizeof(bool)*X);
+						}
+						else { return 0; }
+					}
+				}
+				else { return 0; }
+			}
+			else if (heightInfo[i][pos] < heightInfo[i + 1][pos]){	//다음 높이가 높을 때
+				//활주로를 놓을곳에 다른 크기면 안됨, 이미 있으면 활주로 못놓음. 활주로의 길이가 넘어가면 
+				if ((i + 1 - X) >= 0 && isRunway[i + 1 - X] == 0 && (heightInfo[i][pos] == heightInfo[i + 1][pos] -1)){
+					for (int j = i - 1; j >= i + 1 - X; j--){
+						if (heightInfo[i][pos] == heightInfo[j][pos]){
+							if (j == i + 1 - X)
+								memset(isRunway + i + 1 - X, 1, sizeof(bool)*X);
+						}
+						else { return 0; }
+					}
+				}
+				else { return 0; }
+			}
+		}
+	}
+
+	return 1;
+}
+
+int main(void){
+	freopen("sample_input.txt", "r", stdin);
+
+	scanf("%d", &T);
+
+	for (iT = 1; iT <= T; iT++){
+		scanf("%d %d", &N, &X);
+		for (iN = 0; iN < N; iN++){
+			for (jN = 0; jN < N; jN++){
+				scanf("%d", &heightInfo[iN][jN]);
+			}
+		}
+
+		result = 0;
+		for (iN = 0; iN < N; iN++){			//가로방향 검사
+			result += checkRunway(iN, 0);
+		}
+		for (iN = 0; iN < N; iN++){			//세로방향 검사
+			result += checkRunway(iN, 1);
+		}
+
+		printf("#%d %d\n", iT, result);
+	}
+	return 0;
+}

@@ -1,0 +1,60 @@
+//(2017년)KAKAO BLIND RECRUITMENT : [1차] 뉴스 클러스터링
+//교집합 합집합 문제
+#include <iostream>
+#include <string>
+#include <algorithm>
+#include <vector>
+
+using namespace std;
+
+int solution(string str1, string str2) {
+	int answer = 0;
+	vector<string> inter, uni, A, B;
+
+	//문자열 맞추기
+	for (int i = 0; i < str1.size(); i++){
+		if (str1[i] >= 'A' && str1[i] <= 'Z'){
+			str1[i] += 32;
+		}
+		if (str2[i] >= 'A' && str2[i] <= 'Z'){
+			str2[i] += 32;
+		}
+	}
+	for (int i = 0; i < str1.size() - 1; i++){
+		if (str1[i] >= 'a' &&  str1[i] <= 'z' && str1[i + 1] >= 'a' &&  str1[i + 1] <= 'z'){
+			A.push_back(str1.substr(i, 2).c_str());
+		}
+	}
+	for (int i = 0; i < str2.size() - 1; i++){
+		if (str2[i] >= 'a' &&  str2[i] <= 'z' && str2[i + 1] >= 'a' &&  str2[i + 1] <= 'z'){
+			B.push_back(str2.substr(i, 2).c_str());
+		}
+	}
+	sort(A.begin(), A.end());
+	sort(B.begin(), B.end());
+
+	//합집합 계산
+	uni.resize(A.size() + B.size());//공간확보
+	auto itr = set_union(A.begin(), A.end(), B.begin(), B.end(), uni.begin());//합집합
+	uni.erase(itr, uni.end());
+
+	//교집합 계산
+	inter.resize(A.size() + B.size());//공간확보
+	itr = set_intersection(A.begin(), A.end(), B.begin(), B.end(), inter.begin());//합집합
+	inter.erase(itr, inter.end());
+
+	float temp;
+	if (uni.empty()){
+		temp = 1;
+	}
+	else if (inter.empty()){
+		temp = 0;
+	}
+	else {
+		temp = float(inter.size()) / float(uni.size());
+	}
+
+	answer = (int)(temp * 65536);
+
+	return answer;
+}

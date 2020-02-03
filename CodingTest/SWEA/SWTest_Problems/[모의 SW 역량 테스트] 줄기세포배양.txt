@@ -1,0 +1,236 @@
+// SW Expert Academy - Problem. 5653 : [모의 SW 역량 테스트] 줄기세포배양
+// 시뮬레이션 문제
+#include <iostream>
+#include <vector>
+#include <map>
+
+using namespace std;
+
+typedef struct cell
+{
+	int time;
+	int state;
+	int X;
+}Cell;
+
+int T, N, M, K;
+
+int iT, iN, iM, iK, iS, jS;
+
+int result;
+
+int dir[4][2] = { { -1, 0 }, { 1, 0 }, { 0, -1 }, { 0, 1 } };
+
+//key에는 셀의 좌표, value에는 3개가 들어감 : X값 , 상태, 방문여부
+
+Cell arr_cellInfo[350][350];
+//int arr_addList[350][350];
+int delIndex;
+
+map<pair<int, int>, pair<int, int>> cellInfo;	//현재 세포들 상태
+map<pair<int, int>, int> cellList;				//현재 세포들의 정보
+map<pair<int, int>, int> addList;				//추가할 세포들
+vector<pair<int, int>> deleteList;				//지울 세포들
+
+//배양할 세포의 자리에 이미 있으면 배양 안함, 없으면 배양 함
+void cultivateCell(int y, int x, int time){
+	if (cellInfo.find({ y, x }) == cellInfo.end()){
+		if (addList.find({ y, x }) == addList.end()){		//추가할 세포에도 없으면 추가할 세포에다가 추가
+			addList.insert(make_pair(make_pair(y, x), time));
+		}
+		else{
+			if (addList[{y, x}] < time){
+				addList[{y, x}] = time;
+			}
+		}
+	}
+}
+
+void simulate(){
+	//일단 현재 셀 List를 돌면서 현재 상태를 체크
+	//배양할 조건은, 활성 상태일 때
+	int y, x, time;
+	for (auto i = cellList.begin(); i != cellList.end(); i++){
+		y = i->first.first;
+		x = i->first.second;
+		time = i->second;
+
+		if ((cellInfo[{y, x}].second == 1)){
+			if (cellInfo[{y, x}].first == 0){
+				//배양 하기
+				for (jS = 0; jS < 4; jS++){
+					int ny = y + dir[jS][0];
+					int nx = x + dir[jS][1];
+					cultivateCell(ny, nx, time);
+				}
+			}
+			if (cellInfo[{y, x}].first > -time){
+				cellInfo[{y, x}].first--;
+				if (cellInfo[{y, x}].first == -time){
+					//배양 후에는 죽은 세포로 바꿔줌, 죽은 세포로 바꿀 때 result 수를 줄임
+					cellInfo[{y, x}].second = 0;
+					deleteList.push_back({ y, x });
+				}
+			}
+		}
+		else if (cellInfo[{y, x}].second == 2){		//비활성 상태일 때
+			if (cellInfo[{y, x}].first > 0){		//1씩 깎음
+				cellInfo[{y, x}].first--;
+				if (cellInfo[{y, x}].first == 0){	//시간이 다되면 활성 상태로 바꿔줌
+					cellInfo[{y, x}].second = 1;
+
+				}
+			}
+		}
+	}
+
+	//추가할 세포들이 다 정리되면 addCell의 세포들의 모두 추가해 줌
+	for (auto i = addList.begin(); i != addList.end(); i++){
+		y = i->first.first;
+		x = i->first.second;
+		time = i->second;
+
+		cellInfo.insert(make_pair(make_pair(y, x), make_pair(time, 2)));
+		cellList.insert(make_pair(make_pair(y, x), time));
+	}
+
+	//제거 할 세포들이 다 정리되면 deleteCell의 세포들의 모두 추가해 줌
+	for (iS = 0; iS < deleteList.size(); iS++){
+		cellList.erase({ deleteList[iS].first, deleteList[iS].second });
+	}
+
+
+}
+
+void arr_cultivateCell(int y, int x, int time){
+	if (arr_cellInfo[y][x].state < 0){
+		if (addList.find({ y, x }) == addList.end()){		//추가할 세포에도 없으면 추가할 세포에다가 추가
+			addList.insert(make_pair(make_pair(y, x), time));
+		}
+		else{
+			if (addList[{y, x}] < time){
+				addList[{y, x}] = time;
+			}
+		}
+	}
+}
+
+void arr_simulate(){
+	//일단 현재 셀 List를 돌면서 현재 상태를 체크
+	//배양할 조건은, 활성 상태일 때
+	for (iN = 0; iN < N + K; iN++){
+		for (iM = 0; iM < M + K; iM++){
+			if (arr_cellInfo[iN][iM].state == -1){ continue; }
+			
+			int time = arr_cellInfo[iN][iM].X;
+			if ((arr_cellInfo[iN][iM].state == 1)){
+				if (arr_cellInfo[iN][iM].time == 0){
+					//배양 하기
+					for (jS = 0; jS < 4; jS++){
+						int ny = iN + dir[jS][0];
+						int nx = iM + dir[jS][1];
+						arr_cultivateCell(ny, nx, time);
+					}
+				}
+				if (arr_cellInfo[iN][iM].time > -time){
+					arr_cellInfo[iN][iM].time--;
+					if (arr_cellInfo[iN][iM].time == -time){
+						//배양 후에는 죽은 세포로 바꿔줌, 죽은 세포로 바꿀 때 result 수를 줄임
+						arr_cellInfo[iN][iM].state = 0;
+						result--;
+					}
+				}
+			}
+			else if (arr_cellInfo[iN][iM].state == 2){		//비활성 상태일 때
+				if (arr_cellInfo[iN][iM].time > 0){		//1씩 깎음
+					arr_cellInfo[iN][iM].time--;
+					if (arr_cellInfo[iN][iM].time == 0){	//시간이 다되면 활성 상태로 바꿔줌
+						arr_cellInfo[iN][iM].state = 1;
+					}
+				}
+			}
+		}
+	}
+
+	int y, x, time;
+	//추가할 세포들이 다 정리되면 addCell의 세포들의 모두 추가해 줌
+	for (auto i = addList.begin(); i != addList.end(); i++){
+		y = i->first.first;
+		x = i->first.second;
+		time = i->second;
+
+		arr_cellInfo[y][x].time = time;
+		arr_cellInfo[y][x].state = 2;
+		arr_cellInfo[y][x].X = time;
+		result++;
+	}
+}
+
+int main(void){
+	freopen("sample_input_5653.txt", "r", stdin);
+
+	scanf("%d", &T);
+
+	for (iT = 1; iT <= T; iT++){
+		scanf("%d %d %d", &N, &M, &K);
+
+		cellInfo.clear();
+		cellList.clear();
+
+		result = 0;
+		int temp;
+		//STL-amp 쓰는 것
+		/*
+		for (iN = 0; iN < N; iN++){
+			for (iM = 0; iM < M; iM++){
+				scanf("%d", &temp);
+				if (temp > 0) {
+					cellInfo.insert(make_pair(make_pair(iN, iM), make_pair(temp, 2)));
+					cellList.insert(make_pair(make_pair(iN, iM), temp));
+					//result++;
+				}
+			}
+		}
+
+		for (iK = 0; iK < K; iK++){
+			addList.clear();
+			deleteList.clear();
+
+			simulate();
+			result = cellList.size();
+		}
+		*/
+		for (iN = 0; iN < N + K; iN++){
+			for (iM = 0; iM < M + K; iM++){
+				arr_cellInfo[iN][iM].time = 0;
+				arr_cellInfo[iN][iM].state = -1;
+			}
+		}
+
+		for (iN = 0; iN < N; iN++){
+			for (iM = 0; iM < M; iM++){
+				scanf("%d", &temp);
+				if (temp > 0) {
+					arr_cellInfo[K / 2 + iN][K / 2 + iM].time = temp;
+					arr_cellInfo[K / 2 + iN][K / 2 + iM].state = 2;
+					arr_cellInfo[K / 2 + iN][K / 2 + iM].X = temp;
+					result++;
+				}
+			}
+		}
+
+		for (iK = 0; iK < K; iK++){
+			/*addList.clear();
+			deleteList.clear();
+
+			simulate();
+			result = cellList.size();*/
+
+			addList.clear();
+
+			arr_simulate();
+		}
+		printf("#%d %d\n", iT, result);
+	}
+	return 0;
+}

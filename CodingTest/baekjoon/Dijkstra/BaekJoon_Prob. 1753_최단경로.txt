@@ -1,0 +1,61 @@
+// BaekJoon - Problem. 1753 : 최단경로
+// Dijkstra Practice 1
+#include <iostream>
+#include <functional>
+#include <vector>
+#include <queue>
+
+#define INF 1e9
+
+using namespace std;
+
+vector<pair<int, int>> edges[20001];
+int dist[20001];
+
+int main(void)
+{
+	//node의 수, edge의 수 입력
+	int V, E; // V : node의 수 , E : edge의 수
+	scanf("%d %d", &V, &E);
+
+	//시작 노드 정보 입력
+	int start_node; // 시작 노드의 번호
+	scanf("%d",&start_node);
+
+	//edge 정보 입력
+	int i = 0, from, to, weight;		//from -> to : 노드 이동정보, val : 가중치
+	for (i = 0; i < E; i++){
+		scanf("%d %d %d", &from, &to, &weight);
+		edges[from].push_back({ to, weight });
+	}
+	
+	//초기화 작업
+	priority_queue<pair<int, int>, vector<pair<int, int>>, greater<pair<int, int>> > pq;		//priority queue 생성, 거리총합 : node번호
+	fill(dist, dist + V + 1, INF);			//최단거리 경로 정보 INF로 채움
+	pq.push({ 0, start_node });				
+	dist[start_node] = 0;
+	
+	int cost, here, next, nextcost;
+	//Dijkstra 알고리즘
+	while (!pq.empty()){
+		cost = pq.top().first;		// priority queue의 top의 정보를 가져옴
+		here = pq.top().second;
+		pq.pop();					// 정보를 빼냈으면 pop해서 queue에서 없앰
+
+		for (i = 0; i < edges[here].size(); i++){
+			next = edges[here][i].first;
+			nextcost = edges[here][i].second;
+			if (dist[next] > dist[here] + nextcost){
+				dist[next] = dist[here] + nextcost;
+				pq.push({ dist[next], next });
+			}
+		}
+	}
+
+	//출력하는 방법
+	for (i = 1; i <= V; i++){
+		(dist[i] != INF) ? printf("%d\n", dist[i]) : printf("INF\n");
+	}
+
+	return 0;
+}

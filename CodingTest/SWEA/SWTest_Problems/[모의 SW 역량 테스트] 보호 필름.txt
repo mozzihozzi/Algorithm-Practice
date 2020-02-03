@@ -1,0 +1,133 @@
+// SW Expert Academy - Problem. 2112 : [모의 SW 역량 테스트] 보호 필름
+// 전형적인 dfs 문제
+#include <iostream>
+//#include <algorithm>
+#include <string.h>
+//#include <vector>
+//#include <stack>
+
+using namespace std;
+
+int T, D, W, K;
+
+int iT, iD, iW, iK;
+
+int result, changeCnt;
+
+bool filmInfo[13][20];
+bool OriginalfilmInfo[13][20];
+
+//bool checkFilmWidth[20];
+bool checkFilmDepth[13];
+//성능 검사 함수
+bool checkDepth(int width){
+	for (iD = 0; iD < D - (K - 1); iD++){		//K줄 검사해야되니까 D-K까지만 검사 해도 됨
+		for (iK = 1; iK < K; iK++){		//검사할 때 bool이니까 논리연산자를 사용하자, 자기자신은 항상 같으니 검사 안해도 됨
+			//한줄을 다 검색해서 3개가 같은 부분이 하나라도 있으면 
+			if ((filmInfo[iD][width] == filmInfo[iD + iK][width])){		// ^ => 다르면 1, 같으면 0
+				if (iK == K - 1){
+					return true;
+				}
+			}
+			else { break; }
+		}
+	}
+	//checkFilmWidth가 하나라도 1이 아니라면 mask는 계속 0이 됨
+	return false;
+}
+
+bool checkPerformance(){
+	//체크 함수 초기화
+	//memset(checkFilmWidth, 0, sizeof(checkFilmWidth));
+	for (iW = 0; iW < W; iW++){
+		if (checkDepth(iW) == 0)
+			return false;
+	}
+
+	return true;
+}
+
+void changeFilm(int posY, bool type){
+	memset(filmInfo[posY], type, sizeof(bool)*W);
+}
+
+void loadFilm(int posY){
+	for (int i = 0; i < W; i++){
+		filmInfo[posY][i] = OriginalfilmInfo[posY][i];
+	}
+}
+
+void dfs(int posY, int cnt){
+	//만약 성능 검사가 통과했으면, result와 비교해 cnt를 넣어줌
+	if (checkPerformance()){
+		if (result > cnt){
+			result = cnt;
+		}
+	}
+
+	//맨 끝까지 검사했으면 return 해줌, 이미 지나왔으면 빠져나감
+	if ((posY == D) | /*(checkFilmDepth[posY]) |*/ (result <= cnt)) { return; }
+
+
+	//약품을 안뿌리는 경우, 0을 뿌리는 경우, 1을 뿌리는 경우 세가지 케이스에 대해 검사
+	for (int j = 0; j < 3; j++){
+		if (j == 0){
+			//checkFilmDepth[posY] = true;
+			dfs(posY + 1, cnt);			//투입 X 일때는 다음으로 넘어감
+			//checkFilmDepth[posY] = false;
+
+		}
+		else if (j == 1) {
+			//checkFilmDepth[posY] = true;
+			changeFilm(posY, 0);		//posY 열에 0으로 약품 투입
+			dfs(posY + 1, cnt + 1);		//투입할 때는
+			loadFilm(posY);
+			//checkFilmDepth[posY] = false;
+		}
+		else if (j == 2){
+			//checkFilmDepth[posY] = true;
+			changeFilm(posY, 1);
+			dfs(posY + 1, cnt + 1);
+			//checkFilmDepth[posY] = false;
+			loadFilm(posY);
+		}
+	}
+}
+
+int main(void){
+	freopen("sample_input_2112.txt", "r", stdin);
+
+	scanf("%d", &T);
+
+	for (iT = 1; iT <= T; iT++){
+		scanf("%d %d %d", &D, &W, &K);
+		for (iD = 0; iD < D; iD++){
+			for (iW = 0; iW < W; iW++){
+				scanf("%d", &OriginalfilmInfo[iD][iW]);
+				filmInfo[iD][iW] = OriginalfilmInfo[iD][iW];
+			}
+		}
+		result = D + 1;
+		//아무것도 안한 상태에서 넣기.
+		if (K == 1 || checkPerformance()){
+			result = 0;
+		}
+		else {
+			memset(checkFilmDepth, 0, sizeof(checkFilmDepth));
+			//첫번째 층 0, A, B 다 해봐야 함
+			dfs(0, 0);		//0번쨰 부터 탐색, 처음에 cnt는 0임
+
+			changeFilm(0, 0);		//posY 열에 0으로 약품 투입
+			dfs(0, 1);		//투입할 때는
+			loadFilm(0);
+			
+			changeFilm(0, 1);		//posY 열에 0으로 약품 투입
+			dfs(0, 1);		//투입할 때는
+			loadFilm(0);
+
+		}
+
+		printf("#%d %d\n", iT, result);
+	}
+	return 0;
+}

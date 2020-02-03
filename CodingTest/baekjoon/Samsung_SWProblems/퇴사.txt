@@ -1,0 +1,42 @@
+//Baekjoon - 14501 : 퇴사
+
+#include <iostream>
+
+#define MAX(a,b) (((a) > (b)) ? (a) : (b))
+
+using namespace std;
+
+int info[15][2]; //상담날짜, 금액
+int dp[16];
+
+int main(void) {
+	int N;
+
+	scanf("%d", &N);
+	for (int i = 0; i < N; i++) {
+		scanf("%d %d", &info[i][0], &info[i][1]);
+	}
+
+	int result = 0;
+	//DP
+	dp[0] = 0;
+	for (int i = 1; i <= N + 1; i++) {
+		for (int j = 1; j < i; j++) {
+			//상담안했을 때
+			dp[i] = MAX(dp[i], dp[j]);
+			
+			//상담했을 때	
+			if (j + info[j-1][0] == i) {
+				dp[i] = MAX(dp[i], dp[j] + info[j - 1][1]);
+			}
+		}
+
+		if (result < dp[i]) {
+			result = dp[i];
+		}
+	}
+
+	printf("%d", result);
+
+	return 0;
+}

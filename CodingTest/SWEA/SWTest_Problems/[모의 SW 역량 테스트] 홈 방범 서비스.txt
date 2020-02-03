@@ -1,0 +1,95 @@
+// SW Expert Academy - Problem. 2117 : [모의 SW 역량 테스트] 홈 방범 서비스
+// 배열 탐색 문제, 반복 단축 및 중단 포인트가 핵심
+#include <iostream>
+//#include <algorithm>
+#include <string.h>
+#include <vector>
+//#include <stack>
+
+#define ABS(a) (((a) < 0) ? -(a) : (a))
+
+using namespace std;
+
+int T, N, M, K;
+
+int iT, iN, jN, iS, jS, iK;
+
+bool check;
+
+int currentPos[2];
+int result;
+
+vector <pair<int, int>> houseList;
+vector <int> houseDistance;
+
+void calcLargestArea(int y, int x){
+	//먼저 K만큼 반복해서 계산해봐야하니까 현재 집에서 최대거리
+	//즉 |ix - jx| + |iy - jy| + 1 를해서 거리 최대 값 K를 구함 그러면 어느 만큼 돌릴 수 있는지 나옴
+	K = 0;
+	houseDistance.clear();
+
+	int tempK;
+	for (jS = 0; jS < houseList.size(); jS++){
+		tempK = ABS(houseList[jS].first - y) + ABS(houseList[jS].second - x) + 1;
+		houseDistance.push_back(tempK);
+		if (K < tempK){ K = tempK; }				//최대 K값을 찾음
+	}
+
+	int currentCost, cntHouse;
+	//집을 다 포함시킬 수 있는 K값 만큼 돌면서 비용이 최대가 되면 
+	for (iK = 1; iK <= K; iK++){
+		currentCost = iK*iK + (iK-1)*(iK-1);			//iK에 따른 운영 비용
+
+		if (currentCost > houseList.size()*M){ break; }		//만약 전체 사람수 보다 현재 비용이크면 반복문 중단
+
+		cntHouse = 0;
+		for (jS = 0; jS < houseList.size(); jS++){			//현재 범위 안에 있는 집 수를 구함
+			if (houseDistance[jS] <= iK) { cntHouse++; }
+		}
+
+		if (cntHouse*M >= currentCost){		//손해가 없는 경우
+			if (result < cntHouse){			//이때 현재의 cntHouse가 result 보다 크면
+				result = cntHouse;			//그 때의 cntHouse를 result에 기록
+			}
+		}
+	}
+}
+
+int main(void){
+	freopen("sample_input_2117.txt", "r", stdin);
+
+	scanf("%d", &T);
+
+	for (iT = 1; iT <= T; iT++){
+		scanf("%d %d", &N, &M);
+
+		houseList.clear();
+		houseDistance.clear();
+
+		for (iN = 0; iN < N; iN++){
+			for (jN = 0; jN < N; jN++){
+				scanf("%d", &check);
+				if ( check ){ houseList.push_back({ iN, jN }); }
+			}
+		}
+
+		
+		result = 0;
+		//모든 집이 아니라 배열 모두에 대해서 탐색 해봐야 함 !!
+		for (iN = 0; iN < N; iN++){
+			for (jN = 0; jN < N; jN++){
+				calcLargestArea(iN, jN);
+			}
+		}
+
+		////모든 집에 대해서 검사
+		//result = 0;
+		//for (iS = 0; iS < houseList.size(); iS++){
+		//	//각 집마다 돌아다니면서 확인함
+		//	calcLargestArea(houseList[iS].first, houseList[iS].second);
+		//}
+
+		printf("#%d %d\n", iT, result);
+	}
+	return 0;
+}

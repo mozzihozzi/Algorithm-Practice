@@ -1,0 +1,81 @@
+// BaekJoon - Problem. 4012 : [모의 SW 역량 테스트] 요리사
+// 탐색, 조합 문제
+#include <iostream>
+#include <vector>
+
+#define ABS(x) (((x) < 0) ? -(x) : (x))
+
+using namespace std;
+
+int T, N;
+int iT, iN, jN;
+int result;
+
+int synergy[16][16];
+int selectAB[16];
+int A, B;
+int cntA, cntB;
+
+//A, B 시너지 총 합 계산
+void calculate(){
+	A = 0, B = 0;
+	for (int i = 0; i < N; i++){
+		for (int j = 0; j < N; j++){
+			if (i != j && selectAB[i] == 1 && selectAB[j] == 1){
+				A += synergy[i][j];
+			}
+			else if (i != j && selectAB[i] == 2 && selectAB[j] == 2){
+				B += synergy[i][j];
+			}
+		}
+	}
+
+	if (result > ABS(A - B)){
+		result = ABS(A - B);
+	}
+}
+
+//A, B 재료 선택
+void combination(int idx){
+	if ( idx == N || (cntA == N/2 && cntB == N/2) ){
+		calculate();
+		return;
+	}
+
+	if (cntA < N / 2){
+		cntA++;
+		selectAB[idx] = 1;
+		combination(idx + 1);
+		selectAB[idx] = 0;
+		cntA--;
+	}
+	if (cntB < N / 2){
+		cntB++;
+		selectAB[idx] = 2;
+		combination(idx + 1);
+		selectAB[idx] = 0;
+		cntB--;
+	}
+}
+
+int main(void){
+	freopen("sample_input_4012.txt", "r", stdin);
+
+	scanf("%d", &T);
+
+	for (iT = 1; iT <= T; iT++){
+		scanf("%d", &N);
+		for (iN = 0; iN < N; iN++){
+			for (jN = 0; jN < N; jN++){
+				scanf("%d", &synergy[iN][jN]);
+			}
+		}
+		result = 20000 * 8;
+		cntA = 0, cntB = 0;
+		combination(0);
+
+		printf("#%d %d\n", iT, result);
+	}
+
+	return 0;
+}

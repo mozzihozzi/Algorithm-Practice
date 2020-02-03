@@ -1,0 +1,82 @@
+//(2017년)KAKAO BLIND RECRUITMENT : [1차] 추석 트래픽
+//배열 만지는 문제 , 11점
+#include <iostream>
+#include <string>
+#include <vector>
+
+using namespace std;
+
+int solution(vector<string> lines) {
+	int answer = 0;
+	vector<pair<int,int>> times;
+	string temp[3];
+	int hour, min, sec, msec;
+	int start, end, idx;
+	for (int i = 0; i < lines.size(); i++){
+		
+		hour = atoi(lines[i].substr(11, 12).c_str());
+		min = atoi(lines[i].substr(14, 15).c_str());
+		sec = atoi(lines[i].substr(17, 18).c_str());
+		msec = atoi(lines[i].substr(20, 22).c_str());
+		//cout << hour << ' ' << min << ' ' << sec << ' ' << msec << endl;
+
+		end = hour * 3600000 + min * 60000 + sec*1000 + msec;
+
+		sec = atoi(lines[i].substr(24, 24).c_str());
+		if (lines[i][25] == 's'){
+			msec = 0;
+		}
+		else {
+			for (idx = 26; lines[i][idx] != 's'; idx++){
+			}
+			msec = atoi(lines[i].substr(26, idx - 1).c_str());
+		}
+		//cout << sec << ' ' << msec << endl;
+
+		start = end - sec * 1000 - msec + 1;
+		//cout << "start : " << start << endl << "end : "  << end << endl << endl;
+
+		times.push_back({start,end});
+	}
+	
+	answer = 0;
+	int cnt1, cnt2, current_start, current_end;
+	for (int i = 0; i < times.size(); i++){
+		current_start = times[i].first;
+		current_end = times[i].second;
+		cnt1 = 0, cnt2 = 0;
+		for (int j = 0; j < times.size(); j++){
+
+			start = times[j].first;
+			end = times[j].second;
+
+			if (start < current_start + 1000 && end >= current_start){
+				cnt1++;
+			}
+			if (start < current_end + 1000 && end >= current_end){
+				cnt2++;
+			}
+		}
+		if (cnt1 > answer){
+			answer = cnt1;
+		}
+		if (cnt2 > answer){
+			answer = cnt2;
+		}
+	}
+
+	return answer;
+}
+
+int main(void){
+	vector<string> lines;
+	string s;
+	s = "2016-09-15 01:00:04.002 2.0s";
+	lines.push_back(s);
+	s = "2016-09-15 01:00:07.000 2s";
+	lines.push_back(s);
+
+	cout << solution(lines) << endl;
+
+	return 0;
+}

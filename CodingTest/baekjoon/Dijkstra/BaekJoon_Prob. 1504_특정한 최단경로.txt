@@ -1,0 +1,99 @@
+// BaekJoon - Problem. 1504 : 특정한 최단경로
+// Dijkstra Practice 3
+#include <iostream>
+#include <functional>
+#include <vector>
+#include <queue>
+
+#define INF 1e9
+
+using namespace std;
+
+vector<pair<int, int>> edges[801];
+int cost_1toNode[801];
+int cost_NodetoNode[801];
+int cost_NodetoEnd[801];
+
+int dist[3][801];
+
+void dijkstra(int start, int idx){
+	priority_queue<pair<int, int>, vector<pair<int, int>>, greater<pair<int, int>>> pq;
+	pq.push({ 0, start });
+	dist[idx][start] = 0;
+	//먼저, 1에서 node1까지의 경로가 가까울 경우와 node2까지의 경로가 까가울 경우 두가지로 구분
+	int current, currentCost, next, nextCost;
+
+	//시작점이 1일때의 최단 경로 탐색
+	while (!pq.empty()){
+		currentCost = pq.top().first;
+		current = pq.top().second;
+		pq.pop();
+
+		for (int i = 0; i < edges[current].size(); i++){
+			next = edges[current][i].first;
+			nextCost = edges[current][i].second;
+
+			if (dist[idx][next] > dist[idx][current] + nextCost){
+				dist[idx][next] = dist[idx][current] + nextCost;
+				pq.push({ dist[idx][next], next });
+			}
+		}
+	}
+}
+
+int main(void){
+	freopen("sample_input_1504.txt", "r", stdin);
+
+	int N, E;				//N : 정점의 수, E : 간선의 수
+	scanf("%d %d", &N, &E);
+
+	int a, b, cost;
+	int i;
+	for (i = 0; i < E; i++){
+		scanf("%d %d %d", &a, &b, &cost);
+		edges[a].push_back({ b, cost });
+		edges[b].push_back({ a, cost });
+	}
+
+	int node1, node2;
+	scanf("%d %d", &node1, &node2);
+
+	for (int i = 0; i < 3; i++){
+		fill(dist[i], dist[i] + N + 1, INF);
+	}
+
+	dijkstra(1, 0);
+	dijkstra(node1, 1);
+	dijkstra(node2, 2);
+
+	//int final_cost = 0, costA, costB;
+
+	unsigned int minimum = min(dist[0][node1] + dist[1][node2] + dist[2][N], dist[0][node2] + dist[2][node1] + dist[1][N]);
+	if (minimum >= INF)
+		printf("-1\n");
+	else
+		printf("%d\n", minimum);
+
+	//if (dist[0][N] == INF){	//만약 처음부터 마지막까지 가는 경로가 없으면 INF 출력
+	//	printf("%d\n", -1);
+	//}
+	//else{	//마지막 까지 가는 경로가 있음, 하지만 거쳐서 갈 수 있는지 확인해야 함
+	//	if (dist[1][node2] == INF){	//a<->b로 가는 경로가 없다면 거쳐서 가지 못한다는 뜻이므로 경로가 없음
+	//		printf("%d\n", -1);
+	//	}
+	//	else{
+	//		costA = dist[0][node1] + dist[1][node2] + dist[2][N];
+	//		costB = dist[0][node2] + dist[2][node1] + dist[1][N];
+	//		if (costA < costB){
+	//			final_cost = costA;
+	//		}
+	//		else{
+	//			final_cost = costB;
+	//		}
+
+	//		printf("%d\n", final_cost);
+	//	}
+	//}
+
+	return 0;
+}

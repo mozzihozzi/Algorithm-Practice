@@ -1,0 +1,149 @@
+// SW Expert Academy - Problem. 2105 : [모의 SW 역량 테스트] 디저트 카페
+// dfs 문제
+#include <iostream>
+#include <algorithm>
+#include <string.h>
+#include <vector>
+#include <stack>
+
+using namespace std;
+
+unsigned int dessertInfo[21][21];	//없는 녀석은 0으로 assign해야 함
+bool dessertVisit[21][21];
+bool dessertValues[101];
+stack <pair<int, pair<int, int>>> posStack;
+
+//우하, 좌하, 좌상, 우상 => 결국 이렇게 돌려서 찾아보면 됨.
+int dir[4][2] = { { 1, 1 }, { 1, -1 }, { -1, -1 }, { -1, 1 } };
+
+int T, N;
+
+int iT, iN, jN;
+
+int start[2];
+int result, cnt, dirCnt;		//결과 값, 이동방향, 이동방향 카운트
+
+bool check(int y, int x){	//y : 세로, x : 가로
+	//다음 좌표가 배열안에 있고, 다음 좌표의 값이 지나온 경로에 없어야 함
+	if (x >= 0 && x < N && y >= 0 && y < N && dessertVisit[y][x] == false){
+		if (dessertValues[dessertInfo[y][x]] == false){
+			return 1;
+		}
+	}
+
+	return 0;
+}
+
+void clear_checkarr(){
+	memset(dessertValues, false, sizeof(dessertValues));
+	memset(dessertVisit, false, sizeof(dessertVisit));
+}
+
+void dfs_stack(int y, int x){
+	//시작 위치 넣어주기
+	posStack.push({ 0, { y, x } });
+	start[0] = y; start[1] = x;
+	dessertValues[dessertInfo[y][x]] = true;
+	cnt = 1;
+
+	int currentDir;
+	bool checkval = false;
+	while (!posStack.empty()){
+		y = posStack.top().second.first;
+		x = posStack.top().second.second;
+		currentDir = posStack.top().first;
+
+		cnt--;
+		posStack.pop();
+		dessertValues[dessertInfo[y][x]] = false;
+
+		checkval = false;
+		for (int i = 0; i < 2; i++){
+			int ny = y + dir[currentDir + i][0];
+			int nx = x + dir[currentDir + i][1];
+			int nextDir = currentDir + i;
+
+			//다음 좌표가 자기자신이면 result값 확인 후 cnt를 넣어줌
+			if (ny == start[0] && nx == start[1] && nextDir == 3){
+				if (result < cnt){
+					result = cnt;
+					return;
+				}
+			}
+
+			if (check(ny, nx)){
+				posStack.push({ currentDir, { y, x } });
+				dessertValues[dessertInfo[y][x]] = true;
+				dessertVisit[y][x] = true;
+				posStack.push({ nextDir, { ny, nx } });
+				dessertValues[dessertInfo[ny][nx]] = true;
+				dessertVisit[ny][nx] = true;
+				cnt += 2;
+				checkval = true;
+			}
+			/*if (checkval == false){
+				dessertValues[dessertInfo[y][x]] = false;
+				dessertVisit[y][x] = false;
+			}*/
+		}
+	}
+
+}
+
+void dfs_recursive(int y, int x, int direction, int cnt){
+	//가장 깊은곳(== 가장 긴 곳)을 탐색 하기 때문에 더이상 찾지 않아도 됨.
+	if (y == start[0] && x == start[1] && cnt > 1){
+		result = (result > cnt) ? result : cnt;
+		return;
+	}
+
+	for (int i = 0; i < 2; i++){
+		int ny = y + dir[direction + i][0];
+		int nx = x + dir[direction + i][1];
+		if (check(ny, nx)){
+			dessertVisit[ny][nx] = true;
+			dessertValues[dessertInfo[ny][nx]] = true;
+			dfs_recursive(ny, nx, direction + i, cnt + 1);
+			dessertVisit[ny][nx] = false;
+			dessertValues[dessertInfo[ny][nx]] = false;
+		}
+		else if (ny == start[0] && nx == start[1]){
+			dfs_recursive(ny, nx, direction + i, cnt + 1);
+		}
+	}
+
+}
+
+int main(void){
+	freopen("sample_input_2105.txt", "r", stdin);
+
+	scanf("%d", &T);
+
+	for (iT = 1; iT <= T; iT++){
+		scanf("%d", &N);
+		for (iN = 0; iN < N; iN++){
+			for (jN = 0; jN < N; jN++){
+				scanf("%d", &dessertInfo[iN][jN]);
+			}
+		}
+
+		clear_checkarr();
+
+		result = -1;
+		for (iN = 0; iN < N - 2; iN++){
+			for (jN = 1; jN < N - 1; jN++){
+				start[0] = iN;
+				start[1] = jN;
+				//dessertVisit[iN][jN] = true;
+				//dessertValues[dessertInfo[iN][jN]] = true;
+				//dfs_recursive(iN, jN, 0, 0);
+				//dessertVisit[iN][jN] = false;
+				//dessertValues[dessertInfo[iN][jN]] = false;
+				dfs_stack(iN, jN);
+			}
+		}
+
+		printf("#%d %d\n", iT, result);
+	}
+	return 0;
+}

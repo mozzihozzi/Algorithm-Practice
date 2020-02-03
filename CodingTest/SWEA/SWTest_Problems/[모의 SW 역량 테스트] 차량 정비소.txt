@@ -1,0 +1,163 @@
+// BaekJoon - Problem. 2477 : [모의 SW 역량 테스트] 차량 정비소
+// 시뮬레이션 문제
+#include <iostream>
+#include <vector>
+
+using namespace std;
+
+typedef struct desk{
+	int pt;				//
+	int cnt;			//cnt가 pt가 되면 처리 끝
+	int personIdx;		//사람 없으면 -1임
+}DESK;
+
+typedef struct person{
+	int number;
+	int at, bt;			//도착시간
+	int A, B;			//들리는 접수/정비소 번호
+}PERSON;
+
+int T, N, M, K, A, B;	// N : 접수, M : 정비, K : 사람 수 , A,B : 접수/정비 창구 정보
+int iT, jT, iN, iM, iK;
+int result;				//고객 번호의 합
+int cntPerson;			//
+
+DESK repairDesk[9];
+DESK receptionDesk[9];
+
+//vector<PERSON> personList;		//번호표, 도착시간
+PERSON personList[1000];
+vector<int> waitingListA;	//접수창구 대기리스트
+vector<int> waitingListB;	//정비창구 대기리스트
+
+void simulate(){
+	//모든 사람이 빠져나갈 때 까지 반복, 모든 사람이 빠져나갔다는 것을 확인할 필요가 있음
+	for (jT = 0, cntPerson = 0; cntPerson != K; jT++){
+
+		////데스크 사람 빼기
+		//정비 데스크에 있는 사람 빼기, 뺄 때 창구 조사 확인
+		int idx;
+		for (iM = 0; iM < M; iM++){
+			if (repairDesk[iM].personIdx != -1){
+				idx = repairDesk[iM].personIdx;
+				if (repairDesk[iM].cnt == repairDesk[iM].pt){	//만약 나갈 시간이 되었으면
+					//설문조사할 때, 접수/정비 창구번호 확인
+					personList[idx].B = iM + 1;
+					if (personList[idx].A == A && personList[idx].B == B){
+						result += (idx + 1);
+					}
+
+					cntPerson++;
+					repairDesk[iM].cnt = 0;
+					repairDesk[iM].personIdx = -1;
+				}
+			}
+		}
+
+		//접수 데스크에 있는 사람 빼기, 뺄 때 정비 데스크 대기 리스트에 넣음.
+		for (iN = 0; iN < N; iN++){
+			if (receptionDesk[iN].personIdx != -1){
+				idx = receptionDesk[iN].personIdx;
+				if (receptionDesk[iN].cnt == receptionDesk[iN].pt){	//만약 나갈 시간이 되었으면
+					//나갈때 끝난 시간 기록
+					personList[idx].bt = jT;
+					personList[idx].A = iN + 1;
+					// 
+					if (waitingListB.empty()){
+						waitingListB.push_back(idx);
+					}
+					else if ((personList[waitingListB.back()].bt < personList[idx].bt)){
+						waitingListB.push_back(idx);
+					}
+					else if ((personList[waitingListB.back()].A < personList[idx].A)){
+						waitingListB.push_back(idx);
+					}
+					else{
+						for (auto i = waitingListB.begin(); i != waitingListB.end(); i++){
+							if (personList[idx].bt == personList[*i].bt){
+								if (personList[idx].A < personList[*i].A){
+									waitingListB.insert(i, idx);
+									break;
+								}
+							}
+						}
+					}
+
+					receptionDesk[iN].cnt = 0;
+					receptionDesk[iN].personIdx = -1;
+				}
+			}
+		}
+
+		//사람들을 접수 대기 리스트에 넣음
+		for (iK = 0; personList[iK].at <= jT && iK < K; iK++){
+			if (personList[iK].at == jT){
+				waitingListA.push_back(iK);
+			}
+		}
+
+		////데스크에 사람 넣기
+		//접수 데스크에 넣기
+		for (iN = 0; iN < N; iN++){
+			if (receptionDesk[iN].personIdx == -1 && !waitingListA.empty()){
+				receptionDesk[iN].personIdx = waitingListA[0];
+				waitingListA.erase(waitingListA.begin());
+			}
+		}
+		//정비 데스크에 넣기
+		for (iM = 0; iM < M; iM++){
+			if (repairDesk[iM].personIdx == -1 && !waitingListB.empty()){
+				repairDesk[iM].personIdx = waitingListB[0];
+				waitingListB.erase(waitingListB.begin());
+			}
+		}
+
+		////데스크 처리시간
+		//접수 데스크 사람 cnt 증가
+		for (iN = 0; iN < N; iN++){
+			if (receptionDesk[iN].personIdx != -1){
+				receptionDesk[iN].cnt++;
+			}
+		}
+		//정비 데스크 사람 cnt 증가
+		for (iM = 0; iM < M; iM++){
+			if (repairDesk[iM].personIdx != -1){
+				repairDesk[iM].cnt++;
+			}
+		}
+	}
+}
+
+int main(void){
+	freopen("sample_input_2477.txt", "r", stdin);
+
+	scanf("%d", &T);
+
+	for (iT = 1; iT <= T; iT++){
+		scanf("%d %d %d %d %d", &N, &M, &K, &A, &B);
+		for (iN = 0; iN < N; iN++){
+			scanf("%d", &(receptionDesk[iN].pt));
+			receptionDesk[iN].personIdx = -1;
+		}
+		for (iM = 0; iM < M; iM++){
+			scanf("%d", &(repairDesk[iM].pt));
+			repairDesk[iM].personIdx = -1;
+		}
+		PERSON temp;
+		for (iK = 0; iK < K; iK++){
+			scanf("%d", &(personList[iK].at));
+			personList[iK].number = iK;
+		}
+
+		result = -1;
+		//if (iT == 8)
+			simulate();
+		if (result != -1){
+			result++;
+		}
+
+		printf("#%d %d\n", iT, result);
+	}
+
+	return 0;
+}

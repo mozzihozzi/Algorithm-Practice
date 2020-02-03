@@ -1,0 +1,75 @@
+//(2017년)KAKAO BLIND RECRUITMENT : [1차] 뉴스 클러스터링
+//교집합 합집합 문제
+#include <iostream>
+#include <string>
+#include <vector>
+#include <map>
+
+using namespace std;
+
+typedef struct split{
+	string action = "";
+	string id = "";
+	string name = "";
+}SPLIT;
+
+vector<string> solution(vector<string> record) {
+	vector<string> answer;
+	vector<SPLIT> commands(record.size());
+	map<string, string> lists;
+	for (int i = 0; i < record.size(); i++){
+		//Enter, Leave, Change 분리
+		int idx2 = 0;
+		int idx1 = record[i].find(' ', idx2);
+		commands[i].action = record[i].substr(idx2, idx1 - idx2);
+
+		if (commands[i].action != "Leave"){
+			//ID 분리
+			idx2 = idx1 + 1;
+			idx1 = record[i].find(' ', idx2);
+			commands[i].id = record[i].substr(idx2, idx1 - idx2);
+			//닉네임 분리
+			idx2 = idx1 + 1;
+			commands[i].name = record[i].substr(idx2, record[i].size() - idx2);
+		}
+		else {
+			//ID 분리
+			idx2 = idx1 + 1;
+			commands[i].id = record[i].substr(idx2, record[i].size() - idx2);
+		}
+
+		//닉네임 수정
+		if (commands[i].action == "Enter" || commands[i].action == "Change"){
+			lists[commands[i].id] = commands[i].name;
+		}
+	}
+	
+	for (int i = 0; i < record.size(); i++){
+		string temp = "";
+		if (commands[i].action == "Enter"){
+			temp += lists[commands[i].id] + "님이 들어왔습니다.";
+			answer.push_back(temp);
+		}
+		else if (commands[i].action == "Leave"){
+			temp += lists[commands[i].id] + "님이 나갔습니다.";
+			answer.push_back(temp);
+		}
+	}
+
+	return answer;
+}
+
+
+int main(void){
+	vector<string> samples;
+	string a[] = {
+		"Enter uid1234 Muzi", "Enter uid4567 Prodo", "Leave uid1234", "Enter uid1234 Prodo", "Change uid4567 Ryan"
+	};
+	for (int i = 0; i < 5; i++){
+		samples.push_back(a[i]);
+	}
+	for (int i = 0; i < samples.size(); i++){
+		cout << solution(samples)[i] << endl;
+	}
+	return 0;
+}

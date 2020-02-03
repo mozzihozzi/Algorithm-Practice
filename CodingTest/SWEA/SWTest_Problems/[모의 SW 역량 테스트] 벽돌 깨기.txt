@@ -1,0 +1,147 @@
+// SW Expert Academy - Problem. 5656 : [모의 SW 역량 테스트] 벽돌 깨기
+// simulation 문제
+#include <iostream>
+#include <algorithm>
+#include <string.h>
+#include <vector>
+
+using namespace std;
+
+int T, N, W, H;
+
+
+int dir[4][2] = { { -1, 0 }, { 1, 0 }, { 0, -1 }, { 0, 1 } };
+
+int beadInfo[15][12];
+int copybeadInfo[4][15][12];
+
+int result[5];
+
+int breakingPoint(int w){
+	for (int iH = 0; iH < H; iH++){
+		if ((beadInfo[iH][w] > 0)){
+			return iH;
+		}
+	}
+	return 0;
+}
+
+int countingBrick(){
+	int cnt = 0;
+	for (int iH = 0; iH < H; iH++){
+		for (int iW = 0; iW < W; iW++){
+			if (beadInfo[iH][iW] > 0){
+				cnt++;
+			}
+		}
+	}
+
+	return cnt;
+}
+
+void rearrangeBrick(){
+	for (int iW = 0; iW < W; iW++){
+		for (int iH = H - 1; iH >= 0; iH--){
+			if ( beadInfo[iH][iW] > 0 && iH < H - 1 ) {			//1인 블럭을 찾았음 
+				for (int h = iH + 1; h < H ; h++){
+					if (((beadInfo[h][iW] == 0) && (beadInfo[h + 1][iW] > 0)) || ((beadInfo[h][iW] == 0) && (h == H - 1))){
+
+						beadInfo[h][iW] = beadInfo[iH][iW];
+						beadInfo[iH][iW] = 0;
+						break;
+						
+					}
+				}
+			}
+		}
+	}
+}
+
+void breakingBrick(int h, int w, int value){
+	//만약 탐색한 곳의 정보가 0 이상이면 0으로 만들기
+	if ((beadInfo[h][w] > 0) ) {
+		beadInfo[h][w] = 0;
+		
+		for (int j = 0; j < 4; j++){	//상 하 좌 우
+			for (int i = 1; i < value; i++){
+				int nh = h + dir[j][0] * i;
+				int nw = w + dir[j][1] * i;
+				//벽돌 index 넘어가는지 확인
+				if (nh < 0 || nh >= H || nw < 0 || nw >= W){ break; }
+
+				//만약 벽돌이 1 이상이면 재귀로 탐색
+				if ( (beadInfo[nh][nw] > 0)){
+					breakingBrick(nh, nw, beadInfo[nh][nw]);
+				}
+			}
+		}
+
+	}
+}
+
+void simulate(int iter){
+	if (iter > N  || (result[iter] == 0)) return;
+	
+	for (int jW = 0; jW < W; jW++){
+		int jH = breakingPoint(jW);		//벽돌 깰 지점 찾기
+
+		//벽돌 정보 복사
+		for (int iH = 0; iH < H; iH++){
+			for (int iW = 0; iW < W; iW++){
+				copybeadInfo[iter - 1][iH][iW] = beadInfo[iH][iW];
+			}
+		}
+
+		//벽돌 뿌숨
+		breakingBrick(jH, jW, beadInfo[jH][jW]);
+		//뿌수고 재배치
+		rearrangeBrick();
+
+		//남아있는 벽돌 세기
+		int cnt = countingBrick();
+		if (cnt < result[iter]) { result[iter] = cnt; }
+		if (cnt == 0) {		//만약 벽돌을 깻는데 총 개수가 0이면 이후에는 깰 필요 없이 전부 0임
+			for (int i = iter; i <= N; i++){
+				result[i] = 0;
+			}
+			return;
+		}
+
+		simulate(iter + 1);
+
+		//원상 복구
+		for (int iH = 0; iH < H; iH++){
+			for (int iW = 0; iW < W; iW++){
+				beadInfo[iH][iW] = copybeadInfo[iter - 1][iH][iW];
+			}
+		}
+	}
+}
+
+int main(void){
+	freopen("sample_input_5656.txt","r",stdin);
+
+	scanf("%d", &T);
+
+	for (int iT = 1; iT <= T; iT++){
+		scanf("%d %d %d", &N, &W, &H);
+		for (int iH = 0; iH < H; iH++){
+			for (int iW = 0; iW < W; iW++){
+				scanf("%d",&beadInfo[iH][iW]);
+			}
+			for (int k = 0; k < 4; k++)
+				memset(copybeadInfo[k][iH],0,sizeof(int)*W);
+		}
+
+		for (int iN = 0; iN <= N; iN++){
+			result[iN] = 12 * 15;
+		}
+
+		 simulate(1);
+		
+
+		printf("#%d %d\n", iT, result[N]);
+
+	}
+	return 0;
+}

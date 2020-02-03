@@ -1,0 +1,95 @@
+//Baekjoon - 12100번 : 2048(Easy)
+#include <iostream>
+#include <vector>
+
+using namespace std;
+
+int N, T;
+int result;
+int	arrDir[4][2] = { { 1, 0 }, { -1, 0 }, { 0, 1 }, { 0, -1 } }; //하, 상, 우, 좌
+int boardMap[20][20];
+vector<vector<int>> boardVec;
+
+int findMax(){
+	int num = 0;
+	for (int iN = 0; iN < N; iN++){
+		for (int jN = 0; jN < N; jN++){
+			if (boardMap[iN][jN] > num){
+				num = boardMap[iN][jN];
+			}
+		}
+	}
+	return num;
+}
+
+void move(int dir){
+	if (dir == 0){
+		for (int x = 0; x < N; x++){
+			vector<bool> tempPos(N,false);
+			for (int y = N-1; y >= 0; y--){	//움직일 벽돌
+				if (boardVec[y][x] != 0){
+					tempPos.push_back(y);
+				}
+			}
+
+			int currentIdx = N - 1;
+			for (int i = 0; i < tempPos.size(); i++){
+				if (i == tempPos.size() - 1){
+					boardVec[currentIdx][x] = boardVec[tempPos[i]][x];
+					boardVec[tempPos[i]][x] = 0;
+				}
+				else if (boardVec[tempPos[i]][x] == boardVec[tempPos[i + 1]][x]){
+
+				}
+				else {
+					boardVec[currentIdx][x] = boardVec[tempPos[i]][x];
+					currentIdx--;
+				}
+			}
+		}
+	}
+	else if (dir == 1){
+
+	}
+	else if (dir == 2){
+
+	}
+	else if (dir == 3){
+
+	}
+}
+
+void dfs(int cnt){
+	if (cnt > 5){
+		int num = findMax();
+		if (result < num){
+			result = num;
+		}
+		return;
+	}
+	
+	vector<vector<int>> BoardTemp = boardVec;
+	for (int i = 0; i < 4; i++){
+		move(i);
+		dfs(cnt + 1);
+		boardVec = BoardTemp;
+	}
+}
+
+int main(void){
+	//freopen("baejoon_12100.txt", "r", stdin);
+
+	scanf("%d", &N);
+	boardVec.assign(N,vector<int>(N,0));
+	for (int iN = 0; iN < N; iN++){
+		for (int jN = 0; jN < N; jN++){
+			scanf("%d",&boardVec[iN][jN]);
+		}
+	}
+
+	result = 0;
+	dfs(0);
+	printf("%d\n", result);
+
+	return 0;
+}

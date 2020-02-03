@@ -1,0 +1,114 @@
+//Baekjoon - 14500 : 테트로미노
+#include <iostream>
+#include <vector>
+
+using namespace std;
+
+int N, M;
+int map[500][500];
+
+//네모
+int type1[4][2] = { { 0, 0 }, { 0, 1 }, { 1, 0 }, { 1, 1 } };
+//긴막대
+int type2[2][4][2] = { {{ 0, 0 }, { 0, 1 }, { 0, 2 }, { 0, 3 } },
+						{ { 0, 0 }, { 1, 0 }, { 2, 0 }, { 3, 0 } } };
+//기역자
+int type3[8][4][2] = { { { 0, 0 }, { 1, 0 }, { 2, 0 }, { 2, 1 } },
+						{ { 0, 0 }, { 1, 0 }, { 2, 0 }, { 2, -1 } },
+						{ { 0, 0 }, { 1, 0 }, { 2, 0 }, { 0, 1 } },
+						{ { 0, 0 }, { 1, 0 }, { 2, 0 }, { 0, -1 } },
+						{ { 0, 0 }, { 0, 1 }, { 0, 2 }, { -1, 2 } },
+						{ { 0, 0 }, { 0, 1 }, { 0, 2 }, { 1, 2 } },
+						{ { 0, 0 }, { 0, 1 }, { 0, 2 }, { -1, 0 } },
+						{ { 0, 0 }, { 0, 1 }, { 0, 2 }, { 1, 0 } } };
+//꺾인 모양
+int type4[4][4][2] = { { { 0, 0 }, { 1, 0 }, { 1, 1 }, { 2, 1 } },
+						{ { 0, 0 }, { 0, 1 }, { 1, 0 }, { 1, -1 } },
+						{ { 0, 0 }, { 0, 1 }, { 1, 1 }, { 1, 2 } },
+						{ { 0, 0 }, { 1, 0 }, { 1, -1 }, { 2, -1 } } };
+//중간돌출
+int type5[4][4][2] = { { { 0, 0 }, { 0, 1 }, { 0, 2 }, { 1, 1 } },
+						{ { 0, 0 }, { 1, 0 }, { 1, 1 }, { 2, 0 } },
+						{ { 0, 0 }, { 0, 1 }, { 0, 2 }, { -1, 1 } },
+						{ { 0, 0 }, { 1, 0 }, { 1, -1 }, { 2, 0 } } };
+
+bool checkPossible(int (*arr)[2], int y, int x){
+	int nx, ny;
+	for (int i = 0; i < 4; i++){
+		ny = y + arr[i][0];
+		nx = x + arr[i][1];
+
+		if (nx < 0 || nx >= M || ny < 0 || ny >= N){
+			return false;
+		}
+	}
+
+	return true;
+}
+
+int calculate(int (*arr)[2], int y, int x){
+	int sum = 0, ix, iy;
+	for (int i = 0; i < 4; i++){
+		ix = arr[i][1];
+		iy = arr[i][0];
+		sum += map[y + iy][x + ix];
+	}
+
+	return sum;
+}
+
+
+int main(void){
+	freopen("baejoon_14500.txt", "r", stdin);
+	int result = 0, temp;
+
+	//입력받기
+	scanf("%d %d", &N, &M);
+	for (int i = 0; i < N; i++){
+		for (int j = 0; j < M; j++){
+			scanf("%d",&map[i][j]);
+		}
+	}
+
+	//NxM배열 돌면서 확인
+	for (int i = 0; i < N; i++){
+		for (int j = 0; j < M; j++){
+			if (checkPossible(type1, i, j)){
+				temp = calculate(type1, i, j);
+				result = (result < temp) ? temp : result;
+			}
+
+			for (int k = 0; k < 2; k++){
+				if (checkPossible(type2[k], i, j)){
+					temp = calculate(type2[k], i, j);
+					result = (result < temp) ? temp : result;
+				}
+			}
+
+			for (int k = 0; k < 8; k++){
+				if (checkPossible(type3[k], i, j)){
+					temp = calculate(type3[k], i, j);
+					result = (result < temp) ? temp : result;
+				}
+			}
+
+			for (int k = 0; k < 4; k++){
+				if (checkPossible(type4[k], i, j)){
+					temp = calculate(type4[k], i, j);
+					result = (result < temp) ? temp : result;
+				}
+			}
+
+			for (int k = 0; k < 4; k++){
+				if (checkPossible(type5[k], i, j)){
+					temp = calculate(type5[k], i, j);
+					result = (result < temp) ? temp : result;
+				}
+			}
+		}
+	}
+
+	printf("%d",result);
+
+	return 0;
+}

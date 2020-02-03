@@ -1,0 +1,97 @@
+// SW Expert Academy - Problem. 1953 : [모의 SW 역량 테스트] 탈주범 검거
+// BFS 문제, Dynamic으로 풀음
+#include <cstdio>
+#include <string.h>
+#include <queue>
+
+using namespace std;
+/*
+enum tunnel_type{		//이거 체크는 부분은 bitset으로 해결할 수 있지 않을까 생각함.
+	// u : up, d : down, l : left, r : right
+	no_tunnel = 0, udlr = 1, ud = 2, lr = 3, ur = 4, br = 5, bl = 6, ul = 7
+};*/
+//위, 아래, 좌, 우
+const int tunnelDir[8][4] = { { 0, 0, 0, 0 }, { 1, 1, 1, 1 }, { 1, 1, 0, 0 }, { 0, 0, 1, 1 },
+							  { 1, 0, 0, 1 }, { 0, 1, 0, 1 }, { 0, 1, 1, 0 }, { 1, 0, 1, 0 } };
+
+int N, M;
+int tunnelType[50][50];				//터널 타입
+bool tunnelCheck[50][50];			//방문여부 체크
+
+int check_possibleMove(int x, int y, int dir){
+	if ((x >= 0) && (y >= 0) && (x < N) && (y < M))
+		if (tunnelDir[tunnelType[x][y]][dir] && (tunnelCheck[x][y] == 0))
+			return 1;
+		else
+			return 0;
+	else
+		return 0;
+}
+
+int main(void){
+	int T, R, C, L;			// T: 테스트 케이스, N : 세로 배열 길이, M : 가로 배열 길이
+							// R, C : 맨홀 뚜껑 위치(R-세로, C-가로), L : 소요 시간	
+	int iT, iN, iM, iL;			// 반복문에 쓰이는 변수들	
+	int x, y;				// 위치 index
+	int result;
+	scanf("%d", &T);
+
+	for (iT = 1; iT <= T; iT++){		
+		scanf("%d %d %d %d %d", &N, &M, &R, &C, &L);
+		for (iN = 0; iN < N; iN++){
+			for (iM = 0; iM < M; iM++){
+				scanf("%d", &tunnelType[iN][iM]);
+			}
+			memset(tunnelCheck[iN], 0, sizeof(bool)*M);		//배열 초기화
+		}
+		
+		queue <pair<int,pair<int,int>> > pos_queue;
+		pos_queue.push({ 1, { R, C } });
+		tunnelCheck[R][C] = 1;
+		result = 0;
+
+		while (!pos_queue.empty()){
+			iL = pos_queue.front().first;
+			x = pos_queue.front().second.first;
+			y = pos_queue.front().second.second;
+			result++;
+			pos_queue.pop();
+
+			//다음 방향, 위-아래-좌-우 순으로 검사
+			//검사할 때, 다음 세가지인 경우 queue에 추가하지 않음
+			//1) 터널의 방향이 없는곳
+			//2) 배열을 벗어나거나, 다음 터널이 없는 경우, 이미 지나온 경우
+			//3) 시간이 끝났을 경우
+			if (tunnelDir[tunnelType[x][y]][0] && check_possibleMove(x - 1, y, 1) && (iL < L)){
+				pos_queue.push({ iL + 1, { x - 1, y } });
+				tunnelCheck[x - 1][y] = 1;
+			}
+			if (tunnelDir[tunnelType[x][y]][1] && check_possibleMove(x + 1, y, 0) && (iL < L)){
+				pos_queue.push({ iL + 1, { x + 1, y } });
+				tunnelCheck[x + 1][y] = 1;
+			}
+			if (tunnelDir[tunnelType[x][y]][2] && check_possibleMove(x, y - 1, 3) && (iL < L)){
+				pos_queue.push({ iL + 1, { x, y - 1} });
+				tunnelCheck[x][y - 1] = 1;
+			}
+			if (tunnelDir[tunnelType[x][y]][3] && check_possibleMove(x, y + 1, 2) && (iL < L)){
+				pos_queue.push({ iL + 1, { x, y + 1 } });
+				tunnelCheck[x][y + 1] = 1;
+			}
+			
+		}
+		/*
+		result = 0;
+		for (iN = 0; iN < N; iN++){
+			for (iM = 0; iM < M; iM++){
+				if (tunnelCheck[iN][iM] == 1){
+					result++;
+				}
+			}
+		}
+		*/
+		printf("#%d %d\n",iT, result);
+	}
+
+	return 0;
+}
