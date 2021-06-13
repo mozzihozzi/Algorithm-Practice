@@ -1,6 +1,8 @@
-# algorithm_practice
-problem_solving_codes
+# Algorithm-Practice
 
-Baekjoon<br>
-SWEA<br>
-Programmes
+Practice Algorithm, Coding Test
+
+## Problem Websites
+* Baekjoon<br>
+* SWEA<br>
+* Programmes<br>
